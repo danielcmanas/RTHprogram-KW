@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Return to Hitting Program</title>
+
+<!-- PWA: makes it installable on iPhone via Share → Add to Home Screen -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hitting Program">
+<meta name="theme-color" content="#1a2332">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow:wght@400;500;600;700;800&display=swap');
 :root{
@@ -14,6 +22,10 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;}
 .page-wrap{max-width:860px;margin:0 auto;padding:24px 16px 0;}
+
+/* SAVED INDICATOR */
+.save-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:white;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;padding:7px 14px;border-radius:20px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;}
+.save-toast.show{opacity:1;transform:translateY(0);}
 
 /* HEADER */
 .header{background:var(--navy);color:white;border-radius:12px 12px 0 0;padding:28px 32px 24px;position:relative;overflow:hidden;}
@@ -32,35 +44,22 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* WEEK TABS */
 .tabs-bar{display:flex;gap:12px;padding:20px 0 0;flex-wrap:wrap;}
-.tab-btn{
-  position:relative;overflow:hidden;
-  flex:1;min-width:200px;
-  background:var(--card);border:1.5px solid var(--border);
-  border-radius:10px;padding:14px 16px;
-  cursor:pointer;text-align:left;
-  transition:border-color .2s,box-shadow .2s;
-}
+.tab-btn{position:relative;overflow:hidden;flex:1;min-width:200px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s;}
 .tab-btn.active{border-color:var(--navy);box-shadow:0 2px 12px rgba(26,35,50,.15);}
 .tab-btn.w2-active{border-color:#1a4a2e;box-shadow:0 2px 12px rgba(26,74,46,.15);}
 .tab-btn.w3-active{border-color:#7c2d12;box-shadow:0 2px 12px rgba(124,45,18,.15);}
-
-/* fill bar behind the button content */
-.tab-fill{
-  position:absolute;top:0;left:0;height:100%;
-  border-radius:8px;
-  transition:width .5s ease;
-  opacity:.13;
-  pointer-events:none;
-}
+.tab-btn.w4-active{border-color:#4a1d96;box-shadow:0 2px 12px rgba(74,29,150,.15);}
+.tab-fill{position:absolute;top:0;left:0;height:100%;border-radius:8px;transition:width .5s ease;opacity:.13;pointer-events:none;}
 .tab-btn[data-week="1"] .tab-fill{background:var(--navy);}
 .tab-btn[data-week="2"] .tab-fill{background:#1a4a2e;}
 .tab-btn[data-week="3"] .tab-fill{background:#7c2d12;}
-
+.tab-btn[data-week="4"] .tab-fill{background:#4a1d96;}
 .tab-inner{position:relative;z-index:1;}
 .tab-wlabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
 .tab-btn.active .tab-wlabel{color:var(--navy);}
 .tab-btn.w2-active .tab-wlabel{color:#1a4a2e;}
 .tab-btn.w3-active .tab-wlabel{color:#7c2d12;}
+.tab-btn.w4-active .tab-wlabel{color:#4a1d96;}
 .tab-title{font-size:14px;font-weight:700;color:var(--navy);}
 .tab-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 .tab-prog{display:flex;align-items:center;gap:8px;margin-top:8px;}
@@ -69,6 +68,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .tab-btn[data-week="1"] .tab-prog-fill{background:var(--navy);}
 .tab-btn[data-week="2"] .tab-prog-fill{background:#1a4a2e;}
 .tab-btn[data-week="3"] .tab-prog-fill{background:#7c2d12;}
+.tab-btn[data-week="4"] .tab-prog-fill{background:#4a1d96;}
 .tab-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
 
 /* WEEK PANELS */
@@ -86,6 +86,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .wf1{background:#eef1f7;border:1.5px solid #c7d7f5;color:#1a2332;}
 .wf2{background:var(--green-light);border:1.5px solid #a7d7b8;color:#1a4a2e;}
 .wf3{background:var(--accent-light);border:1.5px solid #f5c0bb;color:#7c2d12;}
+.wf4{background:#f3f0ff;border:1.5px solid #c4b5fd;color:#4a1d96;}
 .week-focus strong{font-weight:700;}
 
 /* SESSION CARDS */
@@ -156,6 +157,9 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 </style>
 </head>
 <body>
+
+<div class="save-toast" id="save-toast">✓ Saved</div>
+
 <div class="page-wrap">
 
 <!-- HEADER -->
@@ -180,7 +184,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 <!-- TABS -->
 <div class="tabs-bar">
-
   <button class="tab-btn active" data-week="1" onclick="switchTab(1)">
     <div class="tab-fill" id="tab-fill-1" style="width:0%"></div>
     <div class="tab-inner">
@@ -193,7 +196,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </div>
   </button>
-
   <button class="tab-btn" data-week="2" onclick="switchTab(2)">
     <div class="tab-fill" id="tab-fill-2" style="width:0%"></div>
     <div class="tab-inner">
@@ -206,7 +208,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </div>
   </button>
-
   <button class="tab-btn" data-week="3" onclick="switchTab(3)">
     <div class="tab-fill" id="tab-fill-3" style="width:0%"></div>
     <div class="tab-inner">
@@ -219,16 +220,25 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </div>
   </button>
-
+  <button class="tab-btn" data-week="4" onclick="switchTab(4)">
+    <div class="tab-fill" id="tab-fill-4" style="width:0%"></div>
+    <div class="tab-inner">
+      <div class="tab-wlabel">Week 4</div>
+      <div class="tab-title">Building to 100%</div>
+      <div class="tab-sub">Full zone · 5 → 7 → 10 game-speed reps</div>
+      <div class="tab-prog">
+        <div class="tab-prog-track"><div class="tab-prog-fill" id="tab-bar-4" style="width:0%"></div></div>
+        <div class="tab-count" id="tab-count-4">0/5</div>
+      </div>
+    </div>
+  </button>
 </div>
 
 <!-- ═══════════════ WEEK 1 PANEL ═══════════════ -->
 <div class="week-panel active" id="panel-1">
-
   <div class="week-focus wf1">
     <strong>Week 1 Focus:</strong> 50% intensity. All ball work stays middle height, middle of the plate. Build the pattern and groove the swing before adding any challenge. Viz sessions can fall on cage days, off days, or whenever pitchers are throwing.
   </div>
-
   <div class="stop-box">
     <strong>🛑 Stop Session &amp; Contact PT/MD if any of these occur</strong>
     <ul>
@@ -240,27 +250,15 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
     </ul>
   </div>
 
-  <!-- W1 S1 — HITTING -->
   <div class="session-card" id="card-1-1">
     <div class="session-head" onclick="toggleSession('1-1')">
       <div class="session-num">01</div>
-      <div class="session-info">
-        <div class="session-title">Session 1 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 50% intensity</div>
-      </div>
-      <div class="session-tags">
-        <span class="stag stag-tee">Tee ×15</span>
-        <span class="stag stag-soft">Soft Toss ×15</span>
-        <span class="stag stag-int">50%</span>
-      </div>
+      <div class="session-info"><div class="session-title">Session 1 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 50% intensity</div></div>
+      <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">50%</span></div>
       <div class="session-status" id="status-1-1">Not started</div>
     </div>
     <div class="session-body open" id="body-1-1">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div>
-        <span class="int-text">50% — controlled contact, not power</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div><span class="int-text">50% — controlled contact, not power</span></div>
       <div class="sets-label">Sets &amp; Reps — tap checkbox to mark complete</div>
       <div class="sets-grid" id="sets-1-1">
         <div class="set-row" id="s-1-1-1"><div class="set-check" onclick="toggleSet('s-1-1-1','1-1')"></div><div class="set-desc">Warm-up Tee Set<div class="set-detail">10 swings — middle height, middle of plate. Hip rotation first, short path to ball. Easy contact only.</div></div><div class="set-badge">🔵 Tee · 10</div></div>
@@ -272,66 +270,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-1-1-4"><div class="set-check" onclick="toggleSet('s-1-1-4','1-1')"></div><div class="set-desc">Soft Toss Set B<div class="set-detail">7 swings — same consistent location, belt height. Build the pattern. No variation yet.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Pain 0–10, location, any clicking/catching, unusual sensations…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Soreness location, severity, resolved by morning? Any stiffness or swelling…"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-1-1-d" placeholder="Pain 0–10, location, any clicking/catching, unusual sensations…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-1-1-n" placeholder="Soreness location, severity, resolved by morning? Any stiffness or swelling…"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W1 S2 — VIZ -->
   <div class="session-card" id="card-1-2">
     <div class="session-head" onclick="toggleSession('1-2')">
       <div class="session-num">02</div>
-      <div class="session-info">
-        <div class="session-title">Session 2 — Stand-In Visualization</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 2 — Stand-In Visualization</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div></div>
       <div class="session-tags"><span class="stag stag-viz">Visualization</span><span class="stag stag-viz">Stand-In</span></div>
       <div class="session-status" id="status-1-2">Not started</div>
     </div>
     <div class="session-body" id="body-1-2">
-      <div class="viz-block">
-        <strong>🟡 Stand-In Visualization Protocol</strong>
-        Stand in the box vs. machine or live pitcher at game speed. Take every pitch — no swinging. Track the ball out of the hand, time your load, fire your mental trigger, let it pass.
-        <ul>
-          <li>2 rounds of 10 pitches = 20 mental reps minimum</li>
-          <li>Full pre-pitch routine every time (tap, load, track)</li>
-          <li>Optional: take a full dry swing with no ball — rehearse your path, no strain</li>
-          <li>Goal: seeing ball early, trusting timing, staying loose</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take Every Pitch</strong>Stand in the box vs. live pitcher or machine. Take all 5 pitches each round — no swinging. Full pre-pitch routine on every pitch: load, track, let it pass. 3 rounds, rest between each.</div>
+      <div class="sets-label">Rounds — 5 pitches each, take all</div>
       <div class="sets-grid" id="sets-1-2">
-        <div class="set-row" id="s-1-2-1"><div class="set-check" onclick="toggleSet('s-1-2-1','1-2')"></div><div class="set-desc">Round 1 — Track &amp; Time<div class="set-detail">10 pitches. Eyes on release point. Full load — freeze at contact point. Let ball pass.</div></div><div class="set-badge">🟡 10 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min — shake out, reset approach</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-1-2-2"><div class="set-check" onclick="toggleSet('s-1-2-2','1-2')"></div><div class="set-desc">Round 2 — Pitch Recognition<div class="set-detail">10 pitches. Call ball/strike out loud before the pitch crosses the plate.</div></div><div class="set-badge">🟡 10 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min rest</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-1-2-3"><div class="set-check" onclick="toggleSet('s-1-2-3','1-2')"></div><div class="set-desc">Dry Swings <em>(optional)</em><div class="set-detail">5–10 full dry swings on your best pitch. Full path, no strain. Listen to shoulder.</div></div><div class="set-badge">⚡ Optional · 5–10</div></div>
+        <div class="set-row" id="s-1-2-1"><div class="set-check" onclick="toggleSet('s-1-2-1','1-2')"></div><div class="set-desc">Round 1<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-1-2-2"><div class="set-check" onclick="toggleSet('s-1-2-2','1-2')"></div><div class="set-desc">Round 2<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-1-2-3"><div class="set-check" onclick="toggleSet('s-1-2-3','1-2')"></div><div class="set-desc">Round 3<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Any shoulder awareness on dry swings, general comfort level…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="How did shoulder feel the next morning?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-1-2-d" placeholder="General comfort level, any shoulder awareness…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-1-2-n" placeholder="How did shoulder feel the next morning?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W1 S3 — HITTING -->
   <div class="session-card" id="card-1-3">
     <div class="session-head" onclick="toggleSession('1-3')">
       <div class="session-num">03</div>
-      <div class="session-info">
-        <div class="session-title">Session 3 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 50% intensity</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 3 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 50% intensity</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">50%</span></div>
       <div class="session-status" id="status-1-3">Not started</div>
     </div>
     <div class="session-body" id="body-1-3">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div>
-        <span class="int-text">50% — build a repeatable swing, same location</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div><span class="int-text">50% — build a repeatable swing, same location</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-1-3">
         <div class="set-row" id="s-1-3-1"><div class="set-check" onclick="toggleSet('s-1-3-1','1-3')"></div><div class="set-desc">Tee Set A — Middle Zone<div class="set-detail">8 swings — same middle height, middle plate. Focus on sequencing, not location.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -343,66 +320,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-1-3-4"><div class="set-check" onclick="toggleSet('s-1-3-4','1-3')"></div><div class="set-desc">Soft Toss Set B — Sequencing<div class="set-detail">7 swings. Hips lead, hands follow. Don't muscle — let the rotation drive it.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Compare to Session 1 — better, same, different? Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Recovery trending better or worse than after Session 1?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-1-3-d" placeholder="Compare to Session 1 — better, same, different? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-1-3-n" placeholder="Recovery trending better or worse than after Session 1?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W1 S4 — VIZ -->
   <div class="session-card" id="card-1-4">
     <div class="session-head" onclick="toggleSession('1-4')">
       <div class="session-num">04</div>
-      <div class="session-info">
-        <div class="session-title">Session 4 — Stand-In Visualization</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 4 — Stand-In Visualization</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div></div>
       <div class="session-tags"><span class="stag stag-viz">Visualization</span><span class="stag stag-viz">Stand-In</span></div>
       <div class="session-status" id="status-1-4">Not started</div>
     </div>
     <div class="session-body" id="body-1-4">
-      <div class="viz-block">
-        <strong>🟡 Stand-In — Situational ABs</strong>
-        Level up from Session 2. Same stand-in but now add count and situation. Make these at-bats real.
-        <ul>
-          <li>2 rounds × 12 pitches</li>
-          <li>Round 1: 2-strike approach — protect the plate</li>
-          <li>Round 2: hitter's count (2-0 or 3-1) — hunt your pitch</li>
-          <li>Optional: dry swings — full cut with no ball, full follow-through</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take Every Pitch</strong>Same format as Session 2. Stand in, take all 5 pitches each round. Full pre-pitch routine every time. 3 rounds.</div>
+      <div class="sets-label">Rounds — 5 pitches each, take all</div>
       <div class="sets-grid" id="sets-1-4">
-        <div class="set-row" id="s-1-4-1"><div class="set-check" onclick="toggleSet('s-1-4-1','1-4')"></div><div class="set-desc">Round 1 — 2-Strike Mindset<div class="set-detail">12 pitches. Shorten up mentally, cover the plate, go up the middle.</div></div><div class="set-badge">🟡 12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-1-4-2"><div class="set-check" onclick="toggleSet('s-1-4-2','1-4')"></div><div class="set-desc">Round 2 — Hitter's Count<div class="set-detail">12 pitches. Sit on a pitch. Walk away from off-speed. Only trigger on your pitch.</div></div><div class="set-badge">🟡 12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-1-4-3"><div class="set-check" onclick="toggleSet('s-1-4-3','1-4')"></div><div class="set-desc">Dry Swings <em>(optional)</em><div class="set-detail">8–10 full cuts with no ball. Let shoulder move naturally through full follow-through.</div></div><div class="set-badge">⚡ Optional · 8–10</div></div>
+        <div class="set-row" id="s-1-4-1"><div class="set-check" onclick="toggleSet('s-1-4-1','1-4')"></div><div class="set-desc">Round 1<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-1-4-2"><div class="set-check" onclick="toggleSet('s-1-4-2','1-4')"></div><div class="set-desc">Round 2<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-1-4-3"><div class="set-check" onclick="toggleSet('s-1-4-3','1-4')"></div><div class="set-desc">Round 3<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Shoulder awareness on dry swings? Overall readiness?"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="How is recovery trending across the week?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-1-4-d" placeholder="General comfort level, any shoulder awareness…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-1-4-n" placeholder="How is recovery trending across the week?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W1 S5 — HITTING -->
   <div class="session-card" id="card-1-5">
     <div class="session-head" onclick="toggleSession('1-5')">
       <div class="session-num">05</div>
-      <div class="session-info">
-        <div class="session-title">Session 5 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 50% intensity · Week 1 finish</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 5 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 50% intensity · Week 1 finish</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">50%</span></div>
       <div class="session-status" id="status-1-5">Not started</div>
     </div>
     <div class="session-body" id="body-1-5">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div>
-        <span class="int-text">50% — finish strong, groove the pattern</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#3b82f6 50%,#e5e7eb 50%)"></div><span class="int-text">50% — finish strong, groove the pattern</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-1-5">
         <div class="set-row" id="s-1-5-1"><div class="set-check" onclick="toggleSet('s-1-5-1','1-5')"></div><div class="set-desc">Tee Set A<div class="set-detail">8 swings — middle of plate, middle height. How does it feel compared to Session 1?</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -414,55 +370,33 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-1-5-4"><div class="set-check" onclick="toggleSet('s-1-5-4','1-5')"></div><div class="set-desc">Soft Toss Set B — Finish<div class="set-detail">7 swings. Let the hips lead all the way through. Strong finish on every rep.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Final Week 1 hitting session — how does the shoulder feel overall? Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Recovery after final session. Ready to progress?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-1-5-d" placeholder="Final Week 1 hitting session — how does the shoulder feel overall? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-1-5-n" placeholder="Recovery after final session. Ready to progress?"></textarea></div>
       </div>
-      <div class="pt-review">
-        <div class="pt-review-label">📝 PT Clinical Review — End of Week 1</div>
-        <textarea placeholder="PT notes: pain trend across sessions, swing mechanics quality, readiness to advance to Week 2 (70%), any modifications needed…"></textarea>
-      </div>
+      <div class="pt-review"><div class="pt-review-label">📝 PT Clinical Review — End of Week 1</div><textarea id="ta-1-5-pt" placeholder="PT notes: pain trend across sessions, swing mechanics quality, readiness to advance to Week 2 (70%), any modifications needed…"></textarea></div>
     </div>
   </div>
 
   <div class="next-box">
     <div class="label">Upon Successful Completion of Week 1</div>
     <h3>Criteria to Advance to Week 2</h3>
-    <p>
-      ✅&nbsp; All 5 sessions completed as prescribed<br>
-      ✅&nbsp; Pain ≤ 2/10 throughout all hitting sessions<br>
-      ✅&nbsp; No next-day soreness lasting beyond 24 hours<br>
-      ✅&nbsp; PT satisfied with swing mechanics and shoulder position<br>
-      ✅&nbsp; No new symptoms or regression<br><br>
-      <span class="highlight">→ Week 2: 70% intensity · Ball location stays central · Continue every other day</span>
-    </p>
+    <p>✅&nbsp; All 5 sessions completed as prescribed<br>✅&nbsp; Pain ≤ 2/10 throughout all hitting sessions<br>✅&nbsp; No next-day soreness lasting beyond 24 hours<br>✅&nbsp; PT satisfied with swing mechanics and shoulder position<br>✅&nbsp; No new symptoms or regression<br><br><span class="highlight">→ Week 2: 70% intensity · Ball location stays central · Continue every other day</span></p>
   </div>
-</div><!-- end panel-1 -->
-
+</div>
 
 <!-- ═══════════════ WEEK 2 PANEL ═══════════════ -->
 <div class="week-panel" id="panel-2">
+  <div class="week-focus wf2"><strong>Week 2 Focus:</strong> Step up to 70% intensity. Ball location stays central — middle zone on tee, consistent belt-high tosses. Let the added effort come from better hip drive, not from muscling it. Viz sessions flex to your schedule.</div>
 
-  <div class="week-focus wf2">
-    <strong>Week 2 Focus:</strong> Step up to 70% intensity. Ball location stays central — middle zone on tee, consistent belt-high tosses. Let the added effort come from better hip drive, not from muscling it. Viz sessions flex to your schedule.
-  </div>
-
-  <!-- W2 S1 — HITTING -->
   <div class="session-card" id="card-2-1">
     <div class="session-head" onclick="toggleSession('2-1')">
       <div class="session-num">01</div>
-      <div class="session-info">
-        <div class="session-title">Session 1 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 70% intensity</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 1 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 70% intensity</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">70%</span></div>
       <div class="session-status" id="status-2-1">Not started</div>
     </div>
     <div class="session-body" id="body-2-1">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div>
-        <span class="int-text">70% — feel the difference, stay in control</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div><span class="int-text">70% — feel the difference, stay in control</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-2-1">
         <div class="set-row" id="s-2-1-1"><div class="set-check" onclick="toggleSet('s-2-1-1','2-1')"></div><div class="set-desc">Warm-up Tee Set<div class="set-detail">10 swings — middle of the plate, middle height. Start at 50%, build to 70% across the set.</div></div><div class="set-badge">🔵 Tee · 10</div></div>
@@ -474,65 +408,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-2-1-4"><div class="set-check" onclick="toggleSet('s-2-1-4','2-1')"></div><div class="set-desc">Soft Toss Set B<div class="set-detail">7 swings — same location. Stay loose through the swing — tension is the enemy here.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="How does 70% feel vs last week? Pain 0–10, location, anything new…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="More or less soreness than Week 1 sessions?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-2-1-d" placeholder="How does 70% feel vs last week? Pain 0–10, location, anything new…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-2-1-n" placeholder="More or less soreness than Week 1 sessions?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W2 S2 — VIZ -->
   <div class="session-card" id="card-2-2">
     <div class="session-head" onclick="toggleSession('2-2')">
       <div class="session-num">02</div>
-      <div class="session-info">
-        <div class="session-title">Session 2 — Stand-In Visualization</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 2 — Stand-In Visualization</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div></div>
       <div class="session-tags"><span class="stag stag-viz">Visualization</span><span class="stag stag-viz">Stand-In</span></div>
       <div class="session-status" id="status-2-2">Not started</div>
     </div>
     <div class="session-body" id="body-2-2">
-      <div class="viz-block">
-        <strong>🟡 Stand-In Visualization</strong>
-        Same as Week 1. This week focus on staying relaxed and loose — you're about to start swinging harder, so mental calm matters more.
-        <ul>
-          <li>2 rounds of 10–12 pitches</li>
-          <li>Full pre-pitch routine every time</li>
-          <li>Optional: dry swings — take a full cut with no ball, full follow-through</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take Every Pitch</strong>Stand in the box vs. live pitcher or machine. Take all 5 pitches each round — no swinging. Full pre-pitch routine on every pitch. 3 rounds.</div>
+      <div class="sets-label">Rounds — 5 pitches each, take all</div>
       <div class="sets-grid" id="sets-2-2">
-        <div class="set-row" id="s-2-2-1"><div class="set-check" onclick="toggleSet('s-2-2-1','2-2')"></div><div class="set-desc">Round 1 — Track &amp; Time<div class="set-detail">10–12 pitches. Stay relaxed. Full load, freeze at contact point, let it pass.</div></div><div class="set-badge">🟡 10–12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-2-2-2"><div class="set-check" onclick="toggleSet('s-2-2-2','2-2')"></div><div class="set-desc">Round 2 — Situational AB<div class="set-detail">10–12 pitches. Pick a count and situation. Work the AB with a plan.</div></div><div class="set-badge">🟡 10–12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-2-2-3"><div class="set-check" onclick="toggleSet('s-2-2-3','2-2')"></div><div class="set-desc">Dry Swings <em>(optional)</em><div class="set-detail">5–10 full cuts with no ball. Let the shoulder move freely through the whole swing.</div></div><div class="set-badge">⚡ Optional · 5–10</div></div>
+        <div class="set-row" id="s-2-2-1"><div class="set-check" onclick="toggleSet('s-2-2-1','2-2')"></div><div class="set-desc">Round 1<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-2-2-2"><div class="set-check" onclick="toggleSet('s-2-2-2','2-2')"></div><div class="set-desc">Round 2<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-2-2-3"><div class="set-check" onclick="toggleSet('s-2-2-3','2-2')"></div><div class="set-desc">Round 3<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Any shoulder awareness? General comfort and readiness…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="How is shoulder responding overall this week?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-2-2-d" placeholder="General comfort level, any shoulder awareness…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-2-2-n" placeholder="How is shoulder responding overall this week?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W2 S3 — HITTING -->
   <div class="session-card" id="card-2-3">
     <div class="session-head" onclick="toggleSession('2-3')">
       <div class="session-num">03</div>
-      <div class="session-info">
-        <div class="session-title">Session 3 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 70% intensity</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 3 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 70% intensity</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">70%</span></div>
       <div class="session-status" id="status-2-3">Not started</div>
     </div>
     <div class="session-body" id="body-2-3">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div>
-        <span class="int-text">70% — feel more confident than Session 1 this week</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div><span class="int-text">70% — feel more confident than Session 1 this week</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-2-3">
         <div class="set-row" id="s-2-3-1"><div class="set-check" onclick="toggleSet('s-2-3-1','2-3')"></div><div class="set-desc">Tee Set A — Middle Zone<div class="set-detail">8 swings — same middle location. 70% effort. Compare to how Session 1 felt.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -544,66 +458,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-2-3-4"><div class="set-check" onclick="toggleSet('s-2-3-4','2-3')"></div><div class="set-desc">Soft Toss Set B<div class="set-detail">7 swings. Hips lead the whole way. Let the bat whip through — don't force it.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Compare to W2 Session 1 — better, same, different?"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Recovery holding up at 70%?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-2-3-d" placeholder="Compare to W2 Session 1 — better, same, different?"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-2-3-n" placeholder="Recovery holding up at 70%?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W2 S4 — VIZ -->
   <div class="session-card" id="card-2-4">
     <div class="session-head" onclick="toggleSession('2-4')">
       <div class="session-num">04</div>
-      <div class="session-info">
-        <div class="session-title">Session 4 — Stand-In Visualization</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 4 — Stand-In Visualization</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · No contact</div></div>
       <div class="session-tags"><span class="stag stag-viz">Visualization</span><span class="stag stag-viz">Stand-In</span></div>
       <div class="session-status" id="status-2-4">Not started</div>
     </div>
     <div class="session-body" id="body-2-4">
-      <div class="viz-block">
-        <strong>🟡 Stand-In — Situational ABs</strong>
-        Work a count, work a situation. Next week you start varying location — use this stand-in to mentally prep for pitches moving around the zone.
-        <ul>
-          <li>2 rounds × 12 pitches</li>
-          <li>Round 1: 2-strike approach</li>
-          <li>Round 2: hitter's count — hunt your pitch</li>
-          <li>Optional: dry swings — full cut, full follow-through</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take Every Pitch</strong>Same format as Session 2. Stand in, take all 5 pitches each round — no swinging. Full pre-pitch routine every time. 3 rounds.</div>
+      <div class="sets-label">Rounds — 5 pitches each, take all</div>
       <div class="sets-grid" id="sets-2-4">
-        <div class="set-row" id="s-2-4-1"><div class="set-check" onclick="toggleSet('s-2-4-1','2-4')"></div><div class="set-desc">Round 1 — 2-Strike Mindset<div class="set-detail">12 pitches. Shorten up mentally, cover the plate, fight for contact up the middle.</div></div><div class="set-badge">🟡 12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-2-4-2"><div class="set-check" onclick="toggleSet('s-2-4-2','2-4')"></div><div class="set-desc">Round 2 — Hitter's Count<div class="set-detail">12 pitches. Sit on your pitch. Lay off anything else. Trust the plan.</div></div><div class="set-badge">🟡 12 pitches</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-2-4-3"><div class="set-check" onclick="toggleSet('s-2-4-3','2-4')"></div><div class="set-desc">Dry Swings <em>(optional)</em><div class="set-detail">8–10 full cuts. Let the shoulder move naturally all the way through. No holding back on follow-through.</div></div><div class="set-badge">⚡ Optional · 8–10</div></div>
+        <div class="set-row" id="s-2-4-1"><div class="set-check" onclick="toggleSet('s-2-4-1','2-4')"></div><div class="set-desc">Round 1<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-2-4-2"><div class="set-check" onclick="toggleSet('s-2-4-2','2-4')"></div><div class="set-desc">Round 2<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-2-4-3"><div class="set-check" onclick="toggleSet('s-2-4-3','2-4')"></div><div class="set-desc">Round 3<div class="set-detail">5 pitches. Full load, track the ball all the way in, let it pass. No swinging.</div></div><div class="set-badge">🟡 5 pitches · take all</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Shoulder awareness? Overall readiness going into Week 3?"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="How is recovery trending across the week?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-2-4-d" placeholder="General comfort level, any shoulder awareness…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-2-4-n" placeholder="How is recovery trending across the week?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W2 S5 — HITTING -->
   <div class="session-card" id="card-2-5">
     <div class="session-head" onclick="toggleSession('2-5')">
       <div class="session-num">05</div>
-      <div class="session-info">
-        <div class="session-title">Session 5 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 70% intensity · Week 2 finish</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 5 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 70% intensity · Week 2 finish</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">70%</span></div>
       <div class="session-status" id="status-2-5">Not started</div>
     </div>
     <div class="session-body" id="body-2-5">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div>
-        <span class="int-text">70% — finish strong, week 3 opens up location</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#f59e0b 70%,#e5e7eb 30%)"></div><span class="int-text">70% — finish strong, week 3 opens up location</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-2-5">
         <div class="set-row" id="s-2-5-1"><div class="set-check" onclick="toggleSet('s-2-5-1','2-5')"></div><div class="set-desc">Tee Set A<div class="set-detail">8 swings — middle of plate, middle height. This should feel automatic now.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -615,55 +508,33 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-2-5-4"><div class="set-check" onclick="toggleSet('s-2-5-4','2-5')"></div><div class="set-desc">Soft Toss Set B — Finish<div class="set-detail">7 swings. Let the hips lead all the way. Strong finish every rep.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Final Week 2 hitting session. How does shoulder feel at 70%? Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Ready to open up location and push to 80–90%?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-2-5-d" placeholder="Final Week 2 hitting session. How does shoulder feel at 70%? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-2-5-n" placeholder="Ready to open up location and push to 80–90%?"></textarea></div>
       </div>
-      <div class="pt-review">
-        <div class="pt-review-label">📝 PT Clinical Review — End of Week 2</div>
-        <textarea placeholder="PT notes: response to 70% intensity, swing mechanics quality, any compensatory patterns emerging, recommendation to advance to Week 3 (80–90%)…"></textarea>
-      </div>
+      <div class="pt-review"><div class="pt-review-label">📝 PT Clinical Review — End of Week 2</div><textarea id="ta-2-5-pt" placeholder="PT notes: response to 70% intensity, swing mechanics quality, any compensatory patterns emerging, recommendation to advance to Week 3 (80–90%)…"></textarea></div>
     </div>
   </div>
 
   <div class="next-box">
     <div class="label">Upon Successful Completion of Week 2</div>
     <h3>Criteria to Advance to Week 3</h3>
-    <p>
-      ✅&nbsp; All 5 sessions completed at 70%<br>
-      ✅&nbsp; Pain ≤ 2/10 throughout all hitting sessions<br>
-      ✅&nbsp; No next-day soreness lasting beyond 24 hours<br>
-      ✅&nbsp; Swing mechanics holding up at increased effort<br>
-      ✅&nbsp; No new symptoms or regression<br><br>
-      <span class="highlight">→ Week 3: 80–90% intensity · Begin varying ball location · Continue every other day</span>
-    </p>
+    <p>✅&nbsp; All 5 sessions completed at 70%<br>✅&nbsp; Pain ≤ 2/10 throughout all hitting sessions<br>✅&nbsp; No next-day soreness lasting beyond 24 hours<br>✅&nbsp; Swing mechanics holding up at increased effort<br>✅&nbsp; No new symptoms or regression<br><br><span class="highlight">→ Week 3: 80–90% intensity · Begin varying ball location · Continue every other day</span></p>
   </div>
-</div><!-- end panel-2 -->
-
+</div>
 
 <!-- ═══════════════ WEEK 3 PANEL ═══════════════ -->
 <div class="week-panel" id="panel-3">
+  <div class="week-focus wf3"><strong>Week 3 Focus:</strong> 80–90% intensity. Now you start moving the ball around — low-away, middle-in, up in the zone. Introduce location gradually within each session: start middle, then earn the right to vary based on how the shoulder feels as the session goes.</div>
 
-  <div class="week-focus wf3">
-    <strong>Week 3 Focus:</strong> 80–90% intensity. Now you start moving the ball around — low-away, middle-in, up in the zone. Introduce location gradually within each session: start middle, then earn the right to vary based on how the shoulder feels as the session goes.
-  </div>
-
-  <!-- W3 S1 — HITTING -->
   <div class="session-card" id="card-3-1">
     <div class="session-head" onclick="toggleSession('3-1')">
       <div class="session-num">01</div>
-      <div class="session-info">
-        <div class="session-title">Session 1 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Begin location variation</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 1 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Begin location variation</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">80–90%</span></div>
       <div class="session-status" id="status-3-1">Not started</div>
     </div>
     <div class="session-body" id="body-3-1">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#ef4444 85%,#e5e7eb 15%)"></div>
-        <span class="int-text">80–90% — approaching game effort, stay in control</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#ef4444 85%,#e5e7eb 15%)"></div><span class="int-text">80–90% — approaching game effort, stay in control</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-3-1">
         <div class="set-row" id="s-3-1-1"><div class="set-check" onclick="toggleSet('s-3-1-1','3-1')"></div><div class="set-desc">Tee Set A — Middle Start<div class="set-detail">8 swings — start middle as always. Build to 80% across the set. Shoulder check at rep 4.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -675,66 +546,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-3-1-4"><div class="set-check" onclick="toggleSet('s-3-1-4','3-1')"></div><div class="set-desc">Soft Toss Set B — Vary Location<div class="set-detail">7 swings — partner mixes height and depth. Stay loose. Handle each pitch where it is.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="How does 80–90% feel? Shoulder on varied locations — low-away, up in zone? Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Soreness at this intensity? Any specific location that provoked symptoms?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-3-1-d" placeholder="How does 80–90% feel? Shoulder on varied locations — low-away, up in zone? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-3-1-n" placeholder="Soreness at this intensity? Any specific location that provoked symptoms?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W3 S2 — VIZ + INTERMITTENT HITTING -->
   <div class="session-card" id="card-3-2">
     <div class="session-head" onclick="toggleSession('3-2')">
       <div class="session-num">02</div>
-      <div class="session-info">
-        <div class="session-title">Session 2 — Stand-In + Intermittent Hitting</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · Hit every 3rd pitch</div>
-      </div>
-      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">Live Contact</span><span class="stag stag-int">80–90%</span></div>
+      <div class="session-info"><div class="session-title">Session 2 — Stand-In + Swing Every 5th</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · 3 swings total</div></div>
+      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">3 Swings</span><span class="stag stag-int">80–90%</span></div>
       <div class="session-status" id="status-3-2">Not started</div>
     </div>
     <div class="session-body" id="body-3-2">
-      <div class="viz-block">
-        <strong>🟡 Stand-In with Intermittent Hitting</strong>
-        Stand in vs. machine or live pitcher. Take 2 pitches, swing at the 3rd — then repeat. This bridges the gap between visualization and live hitting. You're reading the pitch for real, then trusting your swing when you pull the trigger.
-        <ul>
-          <li>Pattern every round: take, take, swing — take, take, swing</li>
-          <li>Full pre-pitch routine on every pitch, even the ones you take</li>
-          <li>Swing at full 80–90% effort — no half-swings when you go</li>
-          <li>Shoulder check between rounds — if anything feels off, drop back to stand-in only</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds — check off each round as complete</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take 4, Swing the 5th</strong>5 pitches per round. Take the first 4, swing the last one at 80–90% effort. Full pre-pitch routine on every pitch — even the ones you take. 3 rounds = 3 swings total.</div>
+      <div class="sets-label">Rounds — 5 pitches each, swing the 5th</div>
       <div class="sets-grid" id="sets-3-2">
-        <div class="set-row" id="s-3-2-1"><div class="set-check" onclick="toggleSet('s-3-2-1','3-2')"></div><div class="set-desc">Round 1 — Intermittent Hitting<div class="set-detail">12 pitches total (take, take, swing × 4). That's 4 live swings. React to pitch location — hit it where it's thrown.</div></div><div class="set-badge">⚾ 12 pitches · 4 swings</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min — assess shoulder before Round 2</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-3-2-2"><div class="set-check" onclick="toggleSet('s-3-2-2','3-2')"></div><div class="set-desc">Round 2 — Intermittent Hitting<div class="set-detail">12 pitches total (take, take, swing × 4). Stay committed on your swing — don't cheat it.</div></div><div class="set-badge">⚾ 12 pitches · 4 swings</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-3-2-3"><div class="set-check" onclick="toggleSet('s-3-2-3','3-2')"></div><div class="set-desc">Round 3 — Stand-In Only <em>(if needed)</em><div class="set-detail">If shoulder needs a break from swinging, go back to stand-in: 12 pitches, take all, compete mentally.</div></div><div class="set-badge">⚡ Optional · 12 pitches</div></div>
+        <div class="set-row" id="s-3-2-1"><div class="set-check" onclick="toggleSet('s-3-2-1','3-2')"></div><div class="set-desc">Round 1<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-3-2-2"><div class="set-check" onclick="toggleSet('s-3-2-2','3-2')"></div><div class="set-desc">Round 2<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-3-2-3"><div class="set-check" onclick="toggleSet('s-3-2-3','3-2')"></div><div class="set-desc">Round 3<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="How does the shoulder feel on live swings vs. taking pitches? Pain 0–10, any new sensation…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Recovery after first live contact in a viz session?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-3-2-d" placeholder="Shoulder on live swings — any difference from tee/soft toss sessions? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-3-2-n" placeholder="Recovery after live contact…"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W3 S3 — HITTING -->
   <div class="session-card" id="card-3-3">
     <div class="session-head" onclick="toggleSession('3-3')">
       <div class="session-num">03</div>
-      <div class="session-info">
-        <div class="session-title">Session 3 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Full location variation</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 3 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Full location variation</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">80–90%</span></div>
       <div class="session-status" id="status-3-3">Not started</div>
     </div>
     <div class="session-body" id="body-3-3">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#ef4444 85%,#e5e7eb 15%)"></div>
-        <span class="int-text">80–90% — push toward 90% if Session 1 went well</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#ef4444 85%,#e5e7eb 15%)"></div><span class="int-text">80–90% — push toward 90% if Session 1 went well</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-3-3">
         <div class="set-row" id="s-3-3-1"><div class="set-check" onclick="toggleSet('s-3-3-1','3-3')"></div><div class="set-desc">Tee Set A — Oppo Work<div class="set-detail">8 swings — ball on outer half, low-away. Inside-out path at 80–90%. How does it feel vs. middle location?</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -746,66 +596,45 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-3-3-4"><div class="set-check" onclick="toggleSet('s-3-3-4','3-3')"></div><div class="set-desc">Soft Toss Set B — Full Zone<div class="set-detail">7 swings — partner mixes height and side of plate. Handle each pitch where it is.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Any difference low-away vs pull side vs middle? Positions that provoke symptoms?"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Recovery at full location variation?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-3-3-d" placeholder="Any difference low-away vs pull side vs middle? Positions that provoke symptoms?"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-3-3-n" placeholder="Recovery at full location variation?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W3 S4 — VIZ + INTERMITTENT HITTING -->
   <div class="session-card" id="card-3-4">
     <div class="session-head" onclick="toggleSession('3-4')">
       <div class="session-num">04</div>
-      <div class="session-info">
-        <div class="session-title">Session 4 — Stand-In + Intermittent Hitting</div>
-        <div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · Hit every 3rd pitch</div>
-      </div>
-      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">Live Contact</span><span class="stag stag-int">80–90%</span></div>
+      <div class="session-info"><div class="session-title">Session 4 — Stand-In + Swing Every 5th</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · 3 swings total</div></div>
+      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">3 Swings</span><span class="stag stag-int">80–90%</span></div>
       <div class="session-status" id="status-3-4">Not started</div>
     </div>
     <div class="session-body" id="body-3-4">
-      <div class="viz-block">
-        <strong>🟡 Stand-In + Intermittent Hitting — Game Ready</strong>
-        Same take-take-swing pattern as Session 2 but push toward 90% on your swings. This is the closest thing to a real at-bat before you get cleared. Compete on every pitch you see, swing like it matters when you go.
-        <ul>
-          <li>Pattern every round: take, take, swing — take, take, swing</li>
-          <li>Push toward 90% effort on your swings — no half-measures</li>
-          <li>React to pitch location — hit it where it's thrown, don't just hack</li>
-          <li>Shoulder check between rounds — any concern, drop to stand-in only</li>
-        </ul>
-      </div>
-      <div class="sets-label">Rounds</div>
+      <div class="viz-block"><strong>🟡 Stand-In — Take 4, Swing the 5th</strong>Same format as Session 2. 5 pitches per round, take the first 4, swing the last one at 80–90%. Full pre-pitch routine every time. 3 rounds = 3 swings total.</div>
+      <div class="sets-label">Rounds — 5 pitches each, swing the 5th</div>
       <div class="sets-grid" id="sets-3-4">
-        <div class="set-row" id="s-3-4-1"><div class="set-check" onclick="toggleSet('s-3-4-1','3-4')"></div><div class="set-desc">Round 1 — Intermittent Hitting<div class="set-detail">12 pitches (take, take, swing × 4). 4 live swings at 80–90%. Compete like it's a game AB.</div></div><div class="set-badge">⚾ 12 pitches · 4 swings</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min — shoulder check</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-3-4-2"><div class="set-check" onclick="toggleSet('s-3-4-2','3-4')"></div><div class="set-desc">Round 2 — Push to 90%<div class="set-detail">12 pitches (take, take, swing × 4). Commit fully on your swings. This is your last live rehearsal before clearance.</div></div><div class="set-badge">⚾ 12 pitches · 4 swings</div></div>
-        <div class="rest-row"><div class="rest-line"></div><span>2 min</span><div class="rest-line"></div></div>
-        <div class="set-row" id="s-3-4-3"><div class="set-check" onclick="toggleSet('s-3-4-3','3-4')"></div><div class="set-desc">Round 3 — Stand-In Only <em>(if needed)</em><div class="set-detail">If shoulder needs a break, drop to pure stand-in: 12 pitches, visualize your swing, compete mentally.</div></div><div class="set-badge">⚡ Optional · 12 pitches</div></div>
+        <div class="set-row" id="s-3-4-1"><div class="set-check" onclick="toggleSet('s-3-4-1','3-4')"></div><div class="set-desc">Round 1<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-3-4-2"><div class="set-check" onclick="toggleSet('s-3-4-2','3-4')"></div><div class="set-desc">Round 2<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-3-4-3"><div class="set-check" onclick="toggleSet('s-3-4-3','3-4')"></div><div class="set-desc">Round 3<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 80–90% — full effort, no half-swings.</div></div><div class="set-badge">⚾ 5 pitches · 1 swing</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Shoulder on live swings at 90%? Any hesitation, guarding, or new sensations? Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Any lingering symptoms after 4th session?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-3-4-d" placeholder="Shoulder on live swings — any hesitation or guarding? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-3-4-n" placeholder="Any lingering symptoms after 4th session?"></textarea></div>
       </div>
     </div>
   </div>
 
-  <!-- W3 S5 — HITTING -->
   <div class="session-card" id="card-3-5">
     <div class="session-head" onclick="toggleSession('3-5')">
       <div class="session-num">05</div>
-      <div class="session-info">
-        <div class="session-title">Session 5 — Tee + Soft Toss</div>
-        <div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Program finish</div>
-      </div>
+      <div class="session-info"><div class="session-title">Session 5 — Tee + Soft Toss</div><div class="session-subtitle">Hitting day · 30 balls · 80–90% intensity · Program finish</div></div>
       <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">80–90%</span></div>
       <div class="session-status" id="status-3-5">Not started</div>
     </div>
     <div class="session-body" id="body-3-5">
-      <div class="intensity-row">
-        <span class="int-label">Intensity:</span>
-        <div class="int-bar" style="background:linear-gradient(90deg,#ef4444 90%,#e5e7eb 10%)"></div>
-        <span class="int-text">90% — finish the program, earn the clearance</span>
-      </div>
+      <div class="intensity-row"><span class="int-label">Intensity:</span><div class="int-bar" style="background:linear-gradient(90deg,#ef4444 90%,#e5e7eb 10%)"></div><span class="int-text">90% — finish the program, earn the clearance</span></div>
       <div class="sets-label">Sets &amp; Reps</div>
       <div class="sets-grid" id="sets-3-5">
         <div class="set-row" id="s-3-5-1"><div class="set-check" onclick="toggleSet('s-3-5-1','3-5')"></div><div class="set-desc">Tee Set A — Full Zone<div class="set-detail">8 swings — vary location freely: low-away, middle, up. Show complete zone coverage at 90%.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
@@ -817,142 +646,394 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="set-row" id="s-3-5-4"><div class="set-check" onclick="toggleSet('s-3-5-4','3-5')"></div><div class="set-desc">Soft Toss Set B — Finish Strong<div class="set-detail">7 swings. Compete on every pitch. Finish the program exactly how you want to play.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
       </div>
       <div class="notes-grid">
-        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea placeholder="Final session — overall shoulder comfort at 90% with full location variation. Pain 0–10…"></textarea></div>
-        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea placeholder="Any lingering symptoms? Cleared for return to full activity?"></textarea></div>
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-3-5-d" placeholder="Final session — overall shoulder comfort at 90% with full location variation. Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-3-5-n" placeholder="Any lingering symptoms? Cleared for return to full activity?"></textarea></div>
       </div>
-      <div class="pt-review">
-        <div class="pt-review-label">📝 PT Clinical Review — Program Completion</div>
-        <textarea placeholder="PT final notes: overall program response, any positions or movements still needing monitoring, clearance status, recommendations for return to full game activity…"></textarea>
-      </div>
+      <div class="pt-review"><div class="pt-review-label">📝 PT Clinical Review — Program Completion</div><textarea id="ta-3-5-pt" placeholder="PT final notes: overall program response, any positions or movements still needing monitoring, clearance status, recommendations for return to full game activity…"></textarea></div>
     </div>
   </div>
 
   <div class="next-box">
     <div class="label">Program Complete</div>
     <h3>Criteria for Return to Full Game Activity</h3>
+    <p>✅&nbsp; All 15 sessions completed across 3 weeks<br>✅&nbsp; Pain ≤ 1/10 at 80–90% with full location variation<br>✅&nbsp; No next-day soreness lasting beyond 24 hours<br>✅&nbsp; Full zone coverage without compensatory mechanics<br>✅&nbsp; PT and MD clearance for live at-bats<br><br><span class="highlight">→ Return to full game activity: live at-bats, BP, full practice. Continue to monitor and communicate any symptoms.</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ WEEK 4 PANEL ═══════════════ -->
+<div class="week-panel" id="panel-4">
+  <div class="week-focus wf4">
+    <strong>Week 4 Focus:</strong> This is where you earn it. The base of every session stays at 90% — you're not backing off what you built. But now you layer in true 100% game-speed reps: 5 in Session 1, 7 in Session 2, 10 in Session 3. Those max-effort reps go at the end of each tee block, after you're fully dialed in. Viz sessions shift to live stand-in + free swinging — no restrictions. Full zone, full approach, full competitor.
+  </div>
+
+  <!-- W4 S1 — HITTING: 5×100% -->
+  <div class="session-card" id="card-4-1">
+    <div class="session-head" onclick="toggleSession('4-1')">
+      <div class="session-num">01</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — Tee + Soft Toss</div>
+        <div class="session-subtitle">Hitting day · 30 balls · 90% base + 5 at 100%</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">90% + 5×100%</span></div>
+      <div class="session-status" id="status-4-1">Not started</div>
+    </div>
+    <div class="session-body open" id="body-4-1">
+      <div class="intensity-row">
+        <span class="int-label">Intensity:</span>
+        <div class="int-bar" style="background:linear-gradient(90deg,#7c3aed 100%,#e5e7eb 0%)"></div>
+        <span class="int-text">90% base · 5 reps at true 100%</span>
+      </div>
+      <div class="sets-label">Sets &amp; Reps — tap checkbox to mark complete</div>
+      <div class="sets-grid" id="sets-4-1">
+        <div class="set-row" id="s-4-1-1"><div class="set-check" onclick="toggleSet('s-4-1-1','4-1')"></div><div class="set-desc">Tee Set A — 90% Base<div class="set-detail">10 swings — full zone, any location. 90% effort throughout. Establish your rhythm before the max-effort reps.</div></div><div class="set-badge">🔵 Tee · 10</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec — shoulder check, prepare to go all-out</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-1-2"><div class="set-check" onclick="toggleSet('s-4-1-2','4-1')"></div><div class="set-desc">Tee Set B — 5 × 100% <span style="color:#7c3aed;font-size:11px;font-weight:700;">GAME SPEED</span><div class="set-detail">5 swings at absolute max effort. Choose your best pitch location. Full hip drive, full follow-through, no holding back. These are game at-bats.</div></div><div class="set-badge">💥 100% · 5</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>2 min rest — assess shoulder before soft toss</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-1-3"><div class="set-check" onclick="toggleSet('s-4-1-3','4-1')"></div><div class="set-desc">Soft Toss Set A — Full Zone<div class="set-detail">8 swings — partner varies location. 90% effort. Mix heights and sides of plate freely.</div></div><div class="set-badge">🟣 Soft Toss · 8</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-1-4"><div class="set-check" onclick="toggleSet('s-4-1-4','4-1')"></div><div class="set-desc">Soft Toss Set B — Finish Strong<div class="set-detail">7 swings. Any location. 90–100% effort. Compete on every pitch to close the session out.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-4-1-d" placeholder="How does 100% feel? Shoulder specifically on max-effort reps — any difference from 90%? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-4-1-n" placeholder="Recovery after first 100% reps. More soreness than Week 3? Location and severity…"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- W4 S2 — VIZ + SWING EVERY 5TH -->
+  <div class="session-card" id="card-4-2">
+    <div class="session-head" onclick="toggleSession('4-2')">
+      <div class="session-num">02</div>
+      <div class="session-info"><div class="session-title">Session 2 — Stand-In + Swing Every 5th</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · 3 swings total</div></div>
+      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">3 Swings</span><span class="stag stag-int">100%</span></div>
+      <div class="session-status" id="status-4-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-4-2">
+      <div class="viz-block"><strong>🟡 Stand-In — Take 4, Swing the 5th</strong>Same format as Week 3 but now the swing is at 100%. 5 pitches per round, take the first 4, go all-out on the last one. Full pre-pitch routine every time. 3 rounds = 3 max-effort swings total.</div>
+      <div class="sets-label">Rounds — 5 pitches each, swing the 5th at 100%</div>
+      <div class="sets-grid" id="sets-4-2">
+        <div class="set-row" id="s-4-2-1"><div class="set-check" onclick="toggleSet('s-4-2-1','4-2')"></div><div class="set-desc">Round 1<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-2-2"><div class="set-check" onclick="toggleSet('s-4-2-2','4-2')"></div><div class="set-desc">Round 2<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-2-3"><div class="set-check" onclick="toggleSet('s-4-2-3','4-2')"></div><div class="set-desc">Round 3<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-4-2-d" placeholder="Shoulder on 100% live swings — any difference from tee work this week? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-4-2-n" placeholder="Recovery holding at this level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- W4 S3 — HITTING: 7×100% -->
+  <div class="session-card" id="card-4-3">
+    <div class="session-head" onclick="toggleSession('4-3')">
+      <div class="session-num">03</div>
+      <div class="session-info">
+        <div class="session-title">Session 3 — Tee + Soft Toss</div>
+        <div class="session-subtitle">Hitting day · 30 balls · 90% base + 7 at 100%</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">90% + 7×100%</span></div>
+      <div class="session-status" id="status-4-3">Not started</div>
+    </div>
+    <div class="session-body" id="body-4-3">
+      <div class="intensity-row">
+        <span class="int-label">Intensity:</span>
+        <div class="int-bar" style="background:linear-gradient(90deg,#7c3aed 100%,#e5e7eb 0%)"></div>
+        <span class="int-text">90% base · 7 reps at true 100%</span>
+      </div>
+      <div class="sets-label">Sets &amp; Reps</div>
+      <div class="sets-grid" id="sets-4-3">
+        <div class="set-row" id="s-4-3-1"><div class="set-check" onclick="toggleSet('s-4-3-1','4-3')"></div><div class="set-desc">Tee Set A — 90% Base<div class="set-detail">8 swings — full zone at 90%. More max-effort reps today — dial in before you go all-out.</div></div><div class="set-badge">🔵 Tee · 8</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-3-2"><div class="set-check" onclick="toggleSet('s-4-3-2','4-3')"></div><div class="set-desc">Tee Set B — 7 × 100% <span style="color:#7c3aed;font-size:11px;font-weight:700;">GAME SPEED</span><div class="set-detail">7 swings at absolute max effort. Vary the location — you should be able to go 100% anywhere in the zone now. Trust what you've built.</div></div><div class="set-badge">💥 100% · 7</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>2 min rest — full shoulder assessment before soft toss</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-3-3"><div class="set-check" onclick="toggleSet('s-4-3-3','4-3')"></div><div class="set-desc">Soft Toss Set A — Mix Everything<div class="set-detail">8 swings — partner varies height, depth, and side. React and handle each one. Full effort.</div></div><div class="set-badge">🟣 Soft Toss · 8</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-3-4"><div class="set-check" onclick="toggleSet('s-4-3-4','4-3')"></div><div class="set-desc">Soft Toss Set B — Compete<div class="set-detail">7 swings. Hit each ball as hard as you can. No location restrictions. This is your swing now.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-4-3-d" placeholder="7 reps at 100% — shoulder response vs. Session 1's 5 reps? Any specific location that provokes symptoms?"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-4-3-n" placeholder="Recovery trending well? Any lingering soreness?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- W4 S4 — VIZ + SWING EVERY 5TH -->
+  <div class="session-card" id="card-4-4">
+    <div class="session-head" onclick="toggleSession('4-4')">
+      <div class="session-num">04</div>
+      <div class="session-info"><div class="session-title">Session 4 — Stand-In + Swing Every 5th</div><div class="session-subtitle">Cage day, off day, or whenever pitchers are throwing · 3 swings total</div></div>
+      <div class="session-tags"><span class="stag stag-viz">Stand-In</span><span class="stag stag-tee">3 Swings</span><span class="stag stag-int">100%</span></div>
+      <div class="session-status" id="status-4-4">Not started</div>
+    </div>
+    <div class="session-body" id="body-4-4">
+      <div class="viz-block"><strong>🟡 Stand-In — Take 4, Swing the 5th</strong>Same format as Session 2. 5 pitches per round, take the first 4, swing the last one at 100%. Full pre-pitch routine every time. 3 rounds = 3 max-effort swings total.</div>
+      <div class="sets-label">Rounds — 5 pitches each, swing the 5th at 100%</div>
+      <div class="sets-grid" id="sets-4-4">
+        <div class="set-row" id="s-4-4-1"><div class="set-check" onclick="toggleSet('s-4-4-1','4-4')"></div><div class="set-desc">Round 1<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-4-2"><div class="set-check" onclick="toggleSet('s-4-4-2','4-4')"></div><div class="set-desc">Round 2<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>Rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-4-3"><div class="set-check" onclick="toggleSet('s-4-4-3','4-4')"></div><div class="set-desc">Round 3<div class="set-detail">Take pitches 1–4. Swing pitch 5 at 100% — absolute max effort, full follow-through.</div></div><div class="set-badge">💥 5 pitches · 1 swing</div></div>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-4-4-d" placeholder="Shoulder on 100% live swings — feeling more confident vs. Session 2? Pain 0–10…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-4-4-n" placeholder="How is recovery trending going into the final session?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- W4 S5 — HITTING: 10×100% -->
+  <div class="session-card" id="card-4-5">
+    <div class="session-head" onclick="toggleSession('4-5')">
+      <div class="session-num">05</div>
+      <div class="session-info">
+        <div class="session-title">Session 5 — Tee + Soft Toss</div>
+        <div class="session-subtitle">Hitting day · 30 balls · 90% base + 10 at 100% · Program finish</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-tee">Tee ×15</span><span class="stag stag-soft">Soft Toss ×15</span><span class="stag stag-int">90% + 10×100%</span></div>
+      <div class="session-status" id="status-4-5">Not started</div>
+    </div>
+    <div class="session-body" id="body-4-5">
+      <div class="intensity-row">
+        <span class="int-label">Intensity:</span>
+        <div class="int-bar" style="background:linear-gradient(90deg,#7c3aed 100%,#e5e7eb 0%)"></div>
+        <span class="int-text">90% base · 10 reps at true 100% — program finale</span>
+      </div>
+      <div class="sets-label">Sets &amp; Reps</div>
+      <div class="sets-grid" id="sets-4-5">
+        <div class="set-row" id="s-4-5-1"><div class="set-check" onclick="toggleSet('s-4-5-1','4-5')"></div><div class="set-desc">Tee Set A — 90% Base<div class="set-detail">5 swings — middle zone, dial in the feel. Short warm-up before the main event. Save the energy.</div></div><div class="set-badge">🔵 Tee · 5</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec — get ready, this is it</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-5-2"><div class="set-check" onclick="toggleSet('s-4-5-2','4-5')"></div><div class="set-desc">Tee Set B — 10 × 100% <span style="color:#7c3aed;font-size:11px;font-weight:700;">GAME SPEED</span><div class="set-detail">10 swings at absolute max effort. Full zone coverage — vary location across all 10. This is the ceiling of this program. Prove you own it.</div></div><div class="set-badge">💥 100% · 10</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>2 min rest — full shoulder assessment</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-5-3"><div class="set-check" onclick="toggleSet('s-4-5-3','4-5')"></div><div class="set-desc">Soft Toss Set A — Full Effort<div class="set-detail">8 swings — partner varies everything. Match the intensity of the tee work. No let-up.</div></div><div class="set-badge">🟣 Soft Toss · 8</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>90 sec</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-4-5-4"><div class="set-check" onclick="toggleSet('s-4-5-4','4-5')"></div><div class="set-desc">Soft Toss Set B — Finish the Program<div class="set-detail">7 swings. Hit every one like it's the last pitch of the World Series. You've earned this swing — use it.</div></div><div class="set-badge">🟣 Soft Toss · 7</div></div>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-4-5-d" placeholder="10 reps at 100% — final shoulder assessment. Pain 0–10, any sensations across the full session…"></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-4-5-n" placeholder="Final recovery check. Any symptoms that need monitoring before clearance?"></textarea></div>
+      </div>
+      <div class="pt-review">
+        <div class="pt-review-label">📝 PT Clinical Review — Program Completion</div>
+        <textarea id="ta-4-5-pt" placeholder="PT final notes: overall 4-week response, tolerance of 100% max-effort reps, full zone coverage without compensatory mechanics, clearance status for live at-bats and full game activity…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-box">
+    <div class="label">Program Complete — 4 Weeks · 20 Sessions</div>
+    <h3>Criteria for Return to Full Game Activity</h3>
     <p>
-      ✅&nbsp; All 15 sessions completed across 3 weeks<br>
-      ✅&nbsp; Pain ≤ 1/10 at 80–90% with full location variation<br>
+      ✅&nbsp; All 20 sessions completed across 4 weeks<br>
+      ✅&nbsp; Pain ≤ 1/10 at 100% with full zone variation<br>
       ✅&nbsp; No next-day soreness lasting beyond 24 hours<br>
       ✅&nbsp; Full zone coverage without compensatory mechanics<br>
+      ✅&nbsp; 10 consecutive max-effort reps tolerated in final session<br>
       ✅&nbsp; PT and MD clearance for live at-bats<br><br>
-      <span class="highlight">→ Return to full game activity: live at-bats, BP, full practice. Continue to monitor and communicate any symptoms.</span>
+      <span class="highlight">→ Return to full game activity: live at-bats, BP, full practice. You built it the right way — now go play.</span>
     </p>
   </div>
-</div><!-- end panel-3 -->
+</div><!-- end panel-4 -->
 
 </div><!-- page-wrap -->
 
 <script>
-// ── TAB SWITCHING ──────────────────────────────
-function switchTab(w){
-  document.querySelectorAll('.week-panel').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.tab-btn').forEach(function(b){
-    b.classList.remove('active','w2-active','w3-active');
+// ─────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────
+var STORAGE_KEY = 'hitting_v2';
+var toastTimer;
+
+function saveState() {
+  var state = { checks: {}, notes: {}, open: [], tab: '1' };
+
+  // checkboxes — keyed by set-row id
+  document.querySelectorAll('.set-row[id]').forEach(function(row) {
+    state.checks[row.id] = row.classList.contains('set-done');
   });
-  document.getElementById('panel-'+w).classList.add('active');
-  var btn=document.querySelector('[data-week="'+w+'"]');
-  if(w===1) btn.classList.add('active');
-  if(w===2) btn.classList.add('w2-active');
-  if(w===3) btn.classList.add('w3-active');
+
+  // textareas — keyed by element id (all have id="ta-*")
+  document.querySelectorAll('textarea[id]').forEach(function(ta) {
+    state.notes[ta.id] = ta.value;
+  });
+
+  // which session bodies are open
+  document.querySelectorAll('.session-body.open[id]').forEach(function(b) {
+    state.open.push(b.id);
+  });
+
+  // active tab
+  var active = document.querySelector('.week-panel.active');
+  if (active) state.tab = active.id.replace('panel-', '');
+
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  flashToast();
 }
 
-// ── SESSION ACCORDION ─────────────────────────
-function toggleSession(key){
-  var b=document.getElementById('body-'+key);
-  if(b) b.classList.toggle('open');
-}
+function loadState() {
+  var raw;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) {}
+  if (!raw) return;
+  var state;
+  try { state = JSON.parse(raw); } catch(e) { return; }
 
-// ── CHECKBOX TOGGLE ───────────────────────────
-function toggleSet(id,sessionKey){
-  var row=document.getElementById(id);
-  var check=row.querySelector('.set-check');
-  var done=row.classList.toggle('set-done');
-  check.textContent=done?'✓':'';
-  updateSessionStatus(sessionKey);
+  // restore checkboxes
+  if (state.checks) {
+    Object.keys(state.checks).forEach(function(id) {
+      if (!state.checks[id]) return;
+      var row = document.getElementById(id);
+      if (!row) return;
+      row.classList.add('set-done');
+      var chk = row.querySelector('.set-check');
+      if (chk) chk.textContent = '✓';
+    });
+  }
+
+  // restore notes
+  if (state.notes) {
+    Object.keys(state.notes).forEach(function(id) {
+      var ta = document.getElementById(id);
+      if (ta && state.notes[id]) ta.value = state.notes[id];
+    });
+  }
+
+  // restore open sessions (default first session open already set in HTML)
+  if (state.open && state.open.length) {
+    document.querySelectorAll('.session-body').forEach(function(b) { b.classList.remove('open'); });
+    state.open.forEach(function(bid) {
+      var b = document.getElementById(bid);
+      if (b) b.classList.add('open');
+    });
+  }
+
+  // restore active tab
+  if (state.tab) switchTab(parseInt(state.tab), true);
+
+  // rebuild all derived UI from restored data
+  var allKeys = ['1-1','1-2','1-3','1-4','1-5','2-1','2-2','2-3','2-4','2-5','3-1','3-2','3-3','3-4','3-5','4-1','4-2','4-3','4-4','4-5'];
+  allKeys.forEach(updateSessionStatus);
   updateAllProgress();
 }
 
-// ── SESSION STATUS ────────────────────────────
-function updateSessionStatus(key){
-  var sets=document.querySelectorAll('#sets-'+key+' .set-row');
-  var mainSets=Array.from(sets).filter(function(s){
+function flashToast() {
+  var t = document.getElementById('save-toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 1400);
+}
+
+// autosave textareas with slight debounce
+var debounceTimer;
+document.addEventListener('input', function(e) {
+  if (e.target.tagName === 'TEXTAREA') {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(saveState, 500);
+  }
+});
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(w, silent) {
+  document.querySelectorAll('.week-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active','w2-active','w3-active','w4-active'); });
+  document.getElementById('panel-' + w).classList.add('active');
+  var btn = document.querySelector('[data-week="' + w + '"]');
+  if (w === 1) btn.classList.add('active');
+  if (w === 2) btn.classList.add('w2-active');
+  if (w === 3) btn.classList.add('w3-active');
+  if (w === 4) btn.classList.add('w4-active');
+  if (!silent) saveState();
+}
+
+// ─────────────────────────────────────────────
+// SESSION ACCORDION
+// ─────────────────────────────────────────────
+function toggleSession(key) {
+  var b = document.getElementById('body-' + key);
+  if (b) b.classList.toggle('open');
+  saveState();
+}
+
+// ─────────────────────────────────────────────
+// CHECKBOX
+// ─────────────────────────────────────────────
+function toggleSet(id, sessionKey) {
+  var row = document.getElementById(id);
+  var chk = row.querySelector('.set-check');
+  var done = row.classList.toggle('set-done');
+  chk.textContent = done ? '✓' : '';
+  updateSessionStatus(sessionKey);
+  updateAllProgress();
+  saveState();
+}
+
+// ─────────────────────────────────────────────
+// SESSION STATUS BADGE
+// ─────────────────────────────────────────────
+function updateSessionStatus(key) {
+  var sets = document.querySelectorAll('#sets-' + key + ' .set-row');
+  var mainSets = Array.from(sets).filter(function(s) {
     return !s.querySelector('.set-badge').textContent.includes('Optional');
   });
-  var mainDone=mainSets.filter(function(s){return s.classList.contains('set-done');});
-  var totalChecked=Array.from(sets).filter(function(s){return s.classList.contains('set-done');}).length;
-  var statusEl=document.getElementById('status-'+key);
-  var card=document.getElementById('card-'+key);
-  if(!statusEl||!card) return;
-  if(mainDone.length===mainSets.length&&mainSets.length>0){
-    statusEl.textContent='✓ Complete';
+  var mainDone = mainSets.filter(function(s) { return s.classList.contains('set-done'); });
+  var totalDone = Array.from(sets).filter(function(s) { return s.classList.contains('set-done'); }).length;
+  var statusEl = document.getElementById('status-' + key);
+  var card = document.getElementById('card-' + key);
+  if (!statusEl || !card) return;
+  if (mainSets.length > 0 && mainDone.length === mainSets.length) {
+    statusEl.textContent = '✓ Complete';
     card.classList.add('completed');
-  } else if(totalChecked>0){
-    statusEl.textContent=totalChecked+'/'+sets.length+' done';
+  } else if (totalDone > 0) {
+    statusEl.textContent = totalDone + '/' + sets.length + ' done';
     card.classList.remove('completed');
   } else {
-    statusEl.textContent='Not started';
+    statusEl.textContent = 'Not started';
     card.classList.remove('completed');
   }
 }
 
-// ── TAB PROGRESS BARS ─────────────────────────
-function weekSessionsDone(w, keys){
-  var done=0;
-  keys.forEach(function(key){
-    var sets=document.querySelectorAll('#sets-'+key+' .set-row');
-    var mainSets=Array.from(sets).filter(function(s){
+// ─────────────────────────────────────────────
+// TAB PROGRESS BARS
+// ─────────────────────────────────────────────
+function weekSessionsDone(w, keys) {
+  var done = 0;
+  keys.forEach(function(key) {
+    var sets = document.querySelectorAll('#sets-' + key + ' .set-row');
+    var mainSets = Array.from(sets).filter(function(s) {
       return !s.querySelector('.set-badge').textContent.includes('Optional');
     });
-    var mainDone=mainSets.filter(function(s){return s.classList.contains('set-done');});
-    if(mainDone.length===mainSets.length&&mainSets.length>0) done++;
+    var mainDone = mainSets.filter(function(s) { return s.classList.contains('set-done'); });
+    if (mainSets.length > 0 && mainDone.length === mainSets.length) done++;
   });
-  var pct=Math.round(done/keys.length*100);
-  document.getElementById('tab-bar-'+w).style.width=pct+'%';
-  document.getElementById('tab-fill-'+w).style.width=pct+'%';
-  document.getElementById('tab-count-'+w).textContent=done+'/'+keys.length;
+  var pct = Math.round(done / keys.length * 100);
+  document.getElementById('tab-bar-' + w).style.width = pct + '%';
+  document.getElementById('tab-fill-' + w).style.width = pct + '%';
+  document.getElementById('tab-count-' + w).textContent = done + '/' + keys.length;
 }
 
-function updateAllProgress(){
-  weekSessionsDone(1,['1-1','1-2','1-3','1-4','1-5']);
-  weekSessionsDone(2,['2-1','2-2','2-3','2-4','2-5']);
-  weekSessionsDone(3,['3-1','3-2','3-3','3-4','3-5']);
-}
-</script>
-  <script>
-
-// your existing code here
-
-
-const STORAGE_KEY = "hitting_program_v1";
-
-function saveAll() {
-  const data = {};
-  document.querySelectorAll("input[name], textarea[name], select[name]").forEach(el => {
-    if (el.type === "checkbox") data[el.name] = el.checked;
-    else data[el.name] = el.value;
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function updateAllProgress() {
+  weekSessionsDone(1, ['1-1','1-2','1-3','1-4','1-5']);
+  weekSessionsDone(2, ['2-1','2-2','2-3','2-4','2-5']);
+  weekSessionsDone(3, ['3-1','3-2','3-3','3-4','3-5']);
+  weekSessionsDone(4, ['4-1','4-2','4-3','4-4','4-5']);
 }
 
-function loadAll() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
-  const data = JSON.parse(raw);
-
-  document.querySelectorAll("input[name], textarea[name], select[name]").forEach(el => {
-    if (data[el.name] === undefined) return;
-    if (el.type === "checkbox") el.checked = !!data[el.name];
-    else el.value = data[el.name];
-  });
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  loadAll();
-  document.addEventListener("input", saveAll);
-  document.addEventListener("change", saveAll);
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  loadState();
 });
 
+// ─────────────────────────────────────────────
+// SERVICE WORKER (PWA offline support)
+// ─────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function() {});
+}
 </script>
 </body>
 </html>
