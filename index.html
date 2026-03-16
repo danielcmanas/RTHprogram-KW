@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Return to Hitting Program</title>
+<title>Return to Sport Program</title>
 
 <!-- PWA: makes it installable on iPhone via Share → Add to Home Screen -->
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Hitting Program">
+<meta name="apple-mobile-web-app-title" content="Return to Sport">
 <meta name="theme-color" content="#1a2332">
 
 <style>
@@ -162,6 +162,83 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .game-bat-card .gb-body{font-size:13.5px;color:#78350f;line-height:1.7;}
 .game-bat-card .gb-spec{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
 .game-bat-card .gb-pill{background:#fef3c7;border:1px solid #d97706;border-radius:20px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#92400e;}
+
+/* ═══════════════ PROGRAM TOGGLE ═══════════════ */
+.program-toggle{display:flex;gap:0;background:var(--navy);border-radius:0;padding:0 32px;border-top:1px solid rgba(255,255,255,.08);}
+.prog-btn{flex:1;padding:12px 16px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;letter-spacing:.02em;color:rgba(255,255,255,.45);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;}
+.prog-btn.prog-active{color:white;border-bottom-color:#c0392b;}
+.program-panel{display:none;}
+.program-panel.prog-active{display:block;}
+
+/* ═══════════════ THROWING STYLES ═══════════════ */
+.throw-tabs-bar{display:flex;gap:10px;padding:20px 0 0;flex-wrap:wrap;}
+.throw-tab-btn{position:relative;overflow:hidden;flex:1;min-width:120px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s;}
+.throw-tab-btn.tl1-active{border-color:#0f4c75;box-shadow:0 2px 12px rgba(15,76,117,.15);}
+.throw-tab-btn.tl2-active{border-color:#1b6ca8;box-shadow:0 2px 12px rgba(27,108,168,.15);}
+.throw-tab-btn.tl3-active{border-color:#1a6b3c;box-shadow:0 2px 12px rgba(26,107,60,.15);}
+.throw-tab-btn.tl4-active{border-color:#2d6a4f;box-shadow:0 2px 12px rgba(45,106,79,.15);}
+.throw-tab-btn.tl5-active{border-color:#6b3d9a;box-shadow:0 2px 12px rgba(107,61,154,.15);}
+.throw-tab-btn.tl6-active{border-color:#8b1a11;box-shadow:0 2px 12px rgba(139,26,17,.15);}
+.throw-tab-fill{position:absolute;top:0;left:0;height:100%;border-radius:8px;transition:width .5s ease;opacity:.12;pointer-events:none;}
+.throw-tab-btn[data-level="1"] .throw-tab-fill{background:#0f4c75;}
+.throw-tab-btn[data-level="2"] .throw-tab-fill{background:#1b6ca8;}
+.throw-tab-btn[data-level="3"] .throw-tab-fill{background:#1a6b3c;}
+.throw-tab-btn[data-level="4"] .throw-tab-fill{background:#2d6a4f;}
+.throw-tab-btn[data-level="5"] .throw-tab-fill{background:#6b3d9a;}
+.throw-tab-btn[data-level="6"] .throw-tab-fill{background:#8b1a11;}
+.throw-tab-inner{position:relative;z-index:1;}
+.throw-tab-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.throw-tab-btn.tl1-active .throw-tab-label{color:#0f4c75;}
+.throw-tab-btn.tl2-active .throw-tab-label{color:#1b6ca8;}
+.throw-tab-btn.tl3-active .throw-tab-label{color:#1a6b3c;}
+.throw-tab-btn.tl4-active .throw-tab-label{color:#2d6a4f;}
+.throw-tab-btn.tl5-active .throw-tab-label{color:#6b3d9a;}
+.throw-tab-btn.tl6-active .throw-tab-label{color:#8b1a11;}
+.throw-tab-dist{font-size:15px;font-weight:800;color:var(--navy);}
+.throw-tab-dates{font-size:11px;color:var(--muted);margin-top:2px;}
+.throw-tab-prog{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.throw-tab-prog-track{flex:1;height:5px;background:#e8e4de;border-radius:20px;overflow:hidden;}
+.throw-tab-prog-fill{height:100%;border-radius:20px;transition:width .5s;}
+.throw-tab-btn[data-level="1"] .throw-tab-prog-fill{background:#0f4c75;}
+.throw-tab-btn[data-level="2"] .throw-tab-prog-fill{background:#1b6ca8;}
+.throw-tab-btn[data-level="3"] .throw-tab-prog-fill{background:#1a6b3c;}
+.throw-tab-btn[data-level="4"] .throw-tab-prog-fill{background:#2d6a4f;}
+.throw-tab-btn[data-level="5"] .throw-tab-prog-fill{background:#6b3d9a;}
+.throw-tab-btn[data-level="6"] .throw-tab-prog-fill{background:#8b1a11;}
+.throw-tab-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
+.throw-panel{display:none;padding-top:20px;}
+.throw-panel.active{display:block;}
+
+/* level focus banners */
+.level-focus{border-radius:8px;padding:12px 18px;margin-bottom:16px;font-size:13px;line-height:1.6;}
+.lf1{background:#e8f4fd;border:1.5px solid #90caf9;color:#0f4c75;}
+.lf2{background:#e3f0fb;border:1.5px solid #64b5f6;color:#1b6ca8;}
+.lf3{background:#e8f5ef;border:1.5px solid #a7d7b8;color:#1a6b3c;}
+.lf4{background:#e8f5f0;border:1.5px solid #80cfa0;color:#2d6a4f;}
+.lf5{background:#f3eefa;border:1.5px solid #ce93d8;color:#6b3d9a;}
+.lf6{background:#fde8e6;border:1.5px solid #f5c0bb;color:#8b1a11;}
+
+/* throwing criteria blocks */
+.criteria-block{border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:13px;line-height:1.65;}
+.criteria-presession{background:#fff8e1;border:1.5px solid #ffe082;}
+.criteria-insession{background:#fce4ec;border:1.5px solid #f48fb1;}
+.criteria-postsession{background:#e8eaf6;border:1.5px solid #9fa8da;}
+.criteria-block .cb-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:8px;display:block;}
+.criteria-presession .cb-title{color:#f57f17;}
+.criteria-insession .cb-title{color:#c62828;}
+.criteria-postsession .cb-title{color:#283593;}
+.criteria-block ul{padding-left:16px;margin:0;}
+.criteria-block li{margin-bottom:4px;}
+.criteria-block strong{font-weight:700;}
+
+/* mechanics block */
+.mechanics-block{background:#f0f7ff;border:1.5px solid #b3d4f5;border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:13px;}
+.mechanics-block .mb-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#1565c0;font-weight:700;margin-bottom:8px;display:block;}
+.mechanics-block ul{padding-left:16px;margin:0;}
+.mechanics-block li{margin-bottom:4px;line-height:1.55;color:#0d47a1;}
+
+/* throw set badge color */
+.stag-throw{background:#e3f0fb;color:#1b6ca8;}
 </style>
 </head>
 <body>
@@ -172,16 +249,21 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 <!-- HEADER -->
 <div class="header">
-  <div class="header-tag">⚾ Return to Sport Protocol</div>
-  <h1>Return to Hitting Program</h1>
+  <div class="header-tag">⚾ Return to Sport Protocol — Post-SLAP Repair</div>
+  <h1>Baseball Rehabilitation Program</h1>
   <div class="header-meta">
-    <div class="meta-item"><span>Sessions/Week</span>5 total</div>
-    <div class="meta-item"><span>Hitting Days</span>3 per week</div>
-    <div class="meta-item"><span>Viz Days</span>2 per week</div>
-    <div class="meta-item"><span>Frequency</span>Every other day</div>
+    <div class="meta-item"><span>Programs</span>Hitting + Throwing</div>
+    <div class="meta-item"><span>Hitting</span>4 weeks · 14 sessions</div>
+    <div class="meta-item"><span>Throwing</span>6 levels · 12 sessions</div>
+    <div class="meta-item"><span>Patient</span>15 wks post-op</div>
   </div>
 </div>
+<div class="program-toggle">
+  <button class="prog-btn prog-active" onclick="switchProgram('hitting')">⚾ Hitting Program</button>
+  <button class="prog-btn" onclick="switchProgram('throwing')">🏈 Throwing Program</button>
+</div>
 
+<div class="program-panel prog-active" id="program-hitting">
 <!-- LEGEND -->
 <div class="legend">
   <span class="legend-title">Key:&nbsp;</span>
@@ -788,13 +870,728 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div><!-- end panel-4 -->
 
+</div><!-- end program-hitting -->
+<div class="program-panel" id="program-throwing">
+
+<!-- THROWING LEGEND -->
+<div class="legend">
+  <span class="legend-title">Key:&nbsp;</span>
+  <div class="legend-item"><div class="dot" style="background:#1b6ca8"></div>Throwing Set</div>
+  <div class="legend-item"><div class="dot" style="background:#f59e0b"></div>Game-Context Throws</div>
+  <div class="legend-item"><div class="dot" style="background:#c62828"></div>Stop Criteria</div>
+</div>
+
+<div class="throw-tabs-bar">
+  <button class="throw-tab-btn tl1-active" data-level="1" onclick="switchThrowTab(1)">
+    <div class="throw-tab-fill" id="ttab-fill-1" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 1</div>
+      <div class="throw-tab-dist">45'</div>
+      <div class="throw-tab-dates">Mon 3/16 · Wed 3/18</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-1" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-1">0/2</div>
+      </div>
+    </div>
+  </button>
+  <button class="throw-tab-btn" data-level="2" onclick="switchThrowTab(2)">
+    <div class="throw-tab-fill" id="ttab-fill-2" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 2</div>
+      <div class="throw-tab-dist">60'</div>
+      <div class="throw-tab-dates">Sat 3/21 · Mon 3/23</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-2" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-2">0/2</div>
+      </div>
+    </div>
+  </button>
+  <button class="throw-tab-btn" data-level="3" onclick="switchThrowTab(3)">
+    <div class="throw-tab-fill" id="ttab-fill-3" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 3</div>
+      <div class="throw-tab-dist">75'</div>
+      <div class="throw-tab-dates">Thu 3/26 · Sat 3/28</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-3" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-3">0/2</div>
+      </div>
+    </div>
+  </button>
+  <button class="throw-tab-btn" data-level="4" onclick="switchThrowTab(4)">
+    <div class="throw-tab-fill" id="ttab-fill-4" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 4</div>
+      <div class="throw-tab-dist">90'</div>
+      <div class="throw-tab-dates">Mon 3/30 · Wed 4/1</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-4" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-4">0/2</div>
+      </div>
+    </div>
+  </button>
+  <button class="throw-tab-btn" data-level="5" onclick="switchThrowTab(5)">
+    <div class="throw-tab-fill" id="ttab-fill-5" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 5</div>
+      <div class="throw-tab-dist">105'</div>
+      <div class="throw-tab-dates">Sat 4/4 · Mon 4/6</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-5" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-5">0/2</div>
+      </div>
+    </div>
+  </button>
+  <button class="throw-tab-btn" data-level="6" onclick="switchThrowTab(6)">
+    <div class="throw-tab-fill" id="ttab-fill-6" style="width:0%"></div>
+    <div class="throw-tab-inner">
+      <div class="throw-tab-label">Level 6</div>
+      <div class="throw-tab-dist">120'</div>
+      <div class="throw-tab-dates">Thu 4/9 · Sat 4/11</div>
+      <div class="throw-tab-prog">
+        <div class="throw-tab-prog-track"><div class="throw-tab-prog-fill" id="ttab-bar-6" style="width:0%"></div></div>
+        <div class="throw-tab-count" id="ttab-count-6">0/2</div>
+      </div>
+    </div>
+  </button>
+</div>
+
+<div class="throw-panel active" id="throw-panel-1">
+  <div class="level-focus lf1"><strong>Level 1 — 45 feet.</strong> First full-distance session. Bridge work (20' and 30') is complete — this is the first real volume day. Keep effort easy and controlled. The goal is mechanics quality and tissue tolerance, not arm strength. <em>Note: Bridge session (Fri 3/14) — 30' × 2×20 throws — is complete and noted here for reference.</em></div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t1-1">
+    <div class="session-head" onclick="toggleSession('t1-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 45' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Mon 3/16 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 45'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t1-1">Not started</div>
+    </div>
+    <div class="session-body  open" id="body-t1-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t1-1">
+        <div class="set-row" id="s-t1-1-1"><div class="set-check" onclick="toggleSet('s-t1-1-1','t1-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">45 feet. 60–70% effort. Smooth, fluid release. Full arm arc. Hip leads.</div></div><div class="set-badge stag-throw">🟦 45' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t1-1-d" placeholder="Shoulder feel at 45'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t1-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t1-2">
+    <div class="session-head" onclick="toggleSession('t1-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 45' · 3 sets × 25 throws · 3 min rest between sets</div>
+        <div class="session-subtitle">Wed 3/18 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 45'</span><span class="stag stag-throw">3×25</span></div>
+      <div class="session-status" id="status-t1-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t1-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t1-2">
+        <div class="set-row" id="s-t1-2-1"><div class="set-check" onclick="toggleSet('s-t1-2-1','t1-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">45 feet. 65–75% effort. Establish rhythm before set 2.</div></div><div class="set-badge stag-throw">🟦 45' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, arm circles</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t1-2-2"><div class="set-check" onclick="toggleSet('s-t1-2-2','t1-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Same distance. Effort should feel identical — don't chase the ball, stay controlled.</div></div><div class="set-badge stag-throw">🟦 45' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t1-2-3"><div class="set-check" onclick="toggleSet('s-t1-2-3','t1-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set. Mechanics should still feel clean. Any fatigue-related compensations → cut the set short.</div></div><div class="set-badge stag-throw">🟦 45' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t1-2-d" placeholder="3-set session at 45'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t1-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Upon Completing Level 1</div>
+    <h3>Criteria to Advance to Level 2</h3>
+    <p>✅&nbsp; Both sessions completed · ✅&nbsp; Soreness ≤ 4/10 throughout, resolved same day · ✅&nbsp; No next-day soreness &gt;24 hr · ✅&nbsp; Mechanics clean across all sets · <span class="highlight">→ Level 2: 60 feet · Sat 3/21</span></p>
+  </div>
+</div>
+<div class="throw-panel" id="throw-panel-2">
+  <div class="level-focus lf2"><strong>Level 2 — 60 feet.</strong> First distance increase. 15-foot jump — the arm has to work slightly harder to carry the ball. Effort stays controlled. If shoulder feels tight on warm-up tosses, do not push through — hold and try the next day.</div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t2-1">
+    <div class="session-head" onclick="toggleSession('t2-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 60' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Sat 3/21 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 60'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t2-1">Not started</div>
+    </div>
+    <div class="session-body" id="body-t2-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t2-1">
+        <div class="set-row" id="s-t2-1-1"><div class="set-check" onclick="toggleSet('s-t2-1-1','t2-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">60 feet. 65–75% effort. Let the distance happen through hip drive — don't muscle it with the arm.</div></div><div class="set-badge stag-throw">🟦 60' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t2-1-d" placeholder="Shoulder feel at 60'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t2-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t2-2">
+    <div class="session-head" onclick="toggleSession('t2-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 60' · 3 sets × 25 throws · 3 min rest between sets</div>
+        <div class="session-subtitle">Mon 3/23 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 60'</span><span class="stag stag-throw">3×25</span></div>
+      <div class="session-status" id="status-t2-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t2-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t2-2">
+        <div class="set-row" id="s-t2-2-1"><div class="set-check" onclick="toggleSet('s-t2-2-1','t2-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">60 feet. 65–75% effort. Re-establish the feel from Session 1.</div></div><div class="set-badge stag-throw">🟦 60' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t2-2-2"><div class="set-check" onclick="toggleSet('s-t2-2-2','t2-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain same effort and mechanics. Note any change in shoulder feel vs. set 1.</div></div><div class="set-badge stag-throw">🟦 60' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t2-2-3"><div class="set-check" onclick="toggleSet('s-t2-2-3','t2-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set. This is your volume marker — if you complete this clean, Level 2 is done.</div></div><div class="set-badge stag-throw">🟦 60' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t2-2-d" placeholder="3-set session at 60'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t2-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Upon Completing Level 2</div>
+    <h3>Criteria to Advance to Level 3</h3>
+    <p>✅&nbsp; Both sessions completed · ✅&nbsp; Soreness ≤ 4/10, resolved same day · ✅&nbsp; No next-day soreness &gt;24 hr · ✅&nbsp; Arm carries 60 feet without effort compensation · <span class="highlight">→ Level 3: 75 feet · Thu 3/26</span></p>
+  </div>
+</div>
+<div class="throw-panel" id="throw-panel-3">
+  <div class="level-focus lf3"><strong>Level 3 — 75 feet.</strong> This is the mechanical inflection point. Throws above 75 feet load the posterior capsule and external rotators differently — this is where SLAP repairs get tested. S2 (3×25) at this distance needs to feel genuinely easy before stepping to 90'. Do not advance if this level is only tolerated — it needs to feel controlled.</div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t3-1">
+    <div class="session-head" onclick="toggleSession('t3-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 75' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Thu 3/26 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 75'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t3-1">Not started</div>
+    </div>
+    <div class="session-body" id="body-t3-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t3-1">
+        <div class="set-row" id="s-t3-1-1"><div class="set-check" onclick="toggleSet('s-t3-1-1','t3-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">75 feet. 70–80% effort. Notice how the arm feels vs. 60 feet — more posterior shoulder engagement is normal. Soreness &gt;4/10 → stop, 5 min rest, reassess.</div></div><div class="set-badge stag-throw">🟦 75' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t3-1-d" placeholder="Shoulder feel at 75'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t3-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t3-2">
+    <div class="session-head" onclick="toggleSession('t3-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 75' · 3 sets × 25 throws · 3 min rest between sets</div>
+        <div class="session-subtitle">Sat 3/28 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 75'</span><span class="stag stag-throw">3×25</span></div>
+      <div class="session-status" id="status-t3-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t3-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t3-2">
+        <div class="set-row" id="s-t3-2-1"><div class="set-check" onclick="toggleSet('s-t3-2-1','t3-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">75 feet. Should feel more familiar than Session 1. Hip drive doing the work, arm staying loose.</div></div><div class="set-badge stag-throw">🟦 75' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, note any posterior capsule tightness</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t3-2-2"><div class="set-check" onclick="toggleSet('s-t3-2-2','t3-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain mechanics. Any compensation pattern emerging — arm rising, short-arming — cut here and note it.</div></div><div class="set-badge stag-throw">🟦 75' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment before final set</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t3-2-3"><div class="set-check" onclick="toggleSet('s-t3-2-3','t3-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">This set needs to feel controlled, not just tolerated. If it feels easy → clear for 90'. If it feels like max effort → repeat Level 3 before advancing.</div></div><div class="set-badge stag-throw">🟦 75' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t3-2-d" placeholder="3-set session at 75'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t3-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Upon Completing Level 3</div>
+    <h3>Criteria to Advance to Level 4</h3>
+    <p>✅&nbsp; S2 (3×25) completed and felt <em>controlled</em>, not just tolerated · ✅&nbsp; Soreness ≤ 4/10 throughout · ✅&nbsp; No posterior capsule symptoms that worsen set-to-set · ✅&nbsp; No next-day soreness &gt;24 hr · <span class="highlight">→ Level 4: 90 feet · Mon 3/30 — key milestone</span></p>
+  </div>
+</div>
+<div class="throw-panel" id="throw-panel-4">
+  <div class="level-focus lf4"><strong>Level 4 — 90 feet.</strong> This is the target milestone. Game-relevant distance for infield position players. The arm is now working near full functional range. Effort can begin to approach 80–85% on S2 if mechanics and symptoms allow. Do not chase intensity — the distance is the load.</div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t4-1">
+    <div class="session-head" onclick="toggleSession('t4-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 90' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Mon 3/30 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 90'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t4-1">Not started</div>
+    </div>
+    <div class="session-body" id="body-t4-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t4-1">
+        <div class="set-row" id="s-t4-1-1"><div class="set-check" onclick="toggleSet('s-t4-1-1','t4-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">90 feet. 70–80% effort. First throws at game-relevant distance. Note how the shoulder loads and decelerates — this is the key data point for today.</div></div><div class="set-badge stag-throw">🟩 90' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t4-1-d" placeholder="Shoulder feel at 90'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t4-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t4-2">
+    <div class="session-head" onclick="toggleSession('t4-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 90' · 3 sets × 25 throws · 3 min rest between sets</div>
+        <div class="session-subtitle">Wed 4/1 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 90'</span><span class="stag stag-throw">3×25</span></div>
+      <div class="session-status" id="status-t4-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t4-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t4-2">
+        <div class="set-row" id="s-t4-2-1"><div class="set-check" onclick="toggleSet('s-t4-2-1','t4-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">90 feet. 75–85% effort. Arm should feel more settled than Session 1. Hip rotation leading every rep.</div></div><div class="set-badge stag-throw">🟩 90' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, assess for posterior soreness</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t4-2-2"><div class="set-check" onclick="toggleSet('s-t4-2-2','t4-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain mechanics and effort. Any posterior capsule soreness building → follow in-session mod criteria.</div></div><div class="set-badge stag-throw">🟩 90' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t4-2-3"><div class="set-check" onclick="toggleSet('s-t4-2-3','t4-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set at 90'. Complete this clean and you've hit the program milestone. Deceleration quality matters here — don't let the arm drift into poor follow-through to chase distance.</div></div><div class="set-badge stag-throw">🟩 90' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t4-2-d" placeholder="3-set session at 90'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t4-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Upon Completing Level 4</div>
+    <h3>Criteria to Advance to Level 5</h3>
+    <p>✅&nbsp; 90 feet completed across both sessions · ✅&nbsp; Soreness ≤ 4/10, no posterior capsule symptoms worsening set-to-set · ✅&nbsp; No next-day soreness &gt;24 hr · ✅&nbsp; PT satisfied with deceleration mechanics at full distance · <span class="highlight">→ Level 5: 105 feet · Sat 4/4</span></p>
+  </div>
+</div>
+<div class="throw-panel" id="throw-panel-5">
+  <div class="level-focus lf5"><strong>Level 5 — 105 feet.</strong> Beyond game-relevant infield distance. This level builds arm capacity and confidence above the threshold. Sat/Mon pairing means only one rest day between S1 and S2 — if S1 leaves any arm fatigue, slide S2 to Tuesday. Do not force the 48-hour turnaround.</div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t5-1">
+    <div class="session-head" onclick="toggleSession('t5-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 105' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Sat 4/4 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 105'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t5-1">Not started</div>
+    </div>
+    <div class="session-body" id="body-t5-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t5-1">
+        <div class="set-row" id="s-t5-1-1"><div class="set-check" onclick="toggleSet('s-t5-1-1','t5-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">105 feet. 75–80% effort. The arm is going longer than game-distance — stay within your mechanics, don't arc the ball.</div></div><div class="set-badge stag-throw">🟪 105' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t5-1-d" placeholder="Shoulder feel at 105'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t5-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t5-2">
+    <div class="session-head" onclick="toggleSession('t5-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 105' · 3 sets × 25 throws · 3 min rest between sets</div>
+        <div class="session-subtitle">Mon 4/6 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 105'</span><span class="stag stag-throw">3×25</span></div>
+      <div class="session-status" id="status-t5-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t5-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t5-2">
+        <div class="set-row" id="s-t5-2-1"><div class="set-check" onclick="toggleSet('s-t5-2-1','t5-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">105 feet. Note: only 1–2 days since S1 — if arm still feels yesterday's work, soreness should be ≤2/10 and declining. Otherwise hold.</div></div><div class="set-badge stag-throw">🟪 105' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t5-2-2"><div class="set-check" onclick="toggleSet('s-t5-2-2','t5-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain clean mechanics. Short-arming often appears first at this distance under fatigue — watch for it.</div></div><div class="set-badge stag-throw">🟪 105' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t5-2-3"><div class="set-check" onclick="toggleSet('s-t5-2-3','t5-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set. Arm should feel like it has capacity to spare — if this feels like max, note it before advancing to 120'.</div></div><div class="set-badge stag-throw">🟪 105' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t5-2-d" placeholder="3-set session at 105'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t5-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Upon Completing Level 5</div>
+    <h3>Criteria to Advance to Level 6</h3>
+    <p>✅&nbsp; Both sessions completed · ✅&nbsp; Soreness ≤ 4/10, resolved same day · ✅&nbsp; No next-day soreness &gt;24 hr · ✅&nbsp; S2 felt like it had capacity remaining — not max effort · <span class="highlight">→ Level 6: 120 feet · Thu 4/9</span></p>
+  </div>
+</div>
+<div class="throw-panel" id="throw-panel-6">
+  <div class="level-focus lf6"><strong>Level 6 — 120 feet.</strong> Program ceiling. S2 adds game-context throws after the volume block — feeds, relays, and fielding throws at game effort. These are position-specific and PT-directed. Completing this level clean with no symptoms is the final gate for clearance.</div>
+
+  <!-- THROWING CRITERIA — shown once per level -->
+      <div class="criteria-block criteria-presession">
+        <span class="cb-title">⚠️ Pre-Session Check — Before You Start</span>
+        <ul>
+          <li>If lingering soreness from the prior session <strong>does not improve</strong> during warm-up movements and warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+          <li>Warm-up: 5 min arm circles, band external rotation, shoulder CARs — soreness should settle or reduce, not build</li>
+        </ul>
+      </div>
+      <div class="criteria-block criteria-insession">
+        <span class="cb-title">🛑 In-Session Modification Criteria</span>
+        <ul>
+          <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle after rest, session is over for the day</li>
+          <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+          <li><strong>Mechanics check — stop or reduce intensity if:</strong> Arm path rises above shoulder height on release, short-arming appears under fatigue (loss of full arm arc), trunk starts dragging arm rather than hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+        </ul>
+      </div>
+      <div class="mechanics-block">
+        <span class="mb-title">🎯 Optimal Mechanics Targets</span>
+        <ul>
+          <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+          <li>Arm path at or below shoulder height through release — no "high and late" pattern</li>
+          <li>Full arm arc maintained across all throws — no short-arming as effort or distance increases</li>
+          <li>Smooth follow-through with controlled deceleration — no abrupt stop or throwing-shoulder hike</li>
+        </ul>
+      </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-t6-1">
+    <div class="session-head" onclick="toggleSession('t6-1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">Session 1 — 120' · 1 set × 25 throws</div>
+        <div class="session-subtitle">Thu 4/9 · Rest/strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 120'</span><span class="stag stag-throw">1×25</span></div>
+      <div class="session-status" id="status-t6-1">Not started</div>
+    </div>
+    <div class="session-body" id="body-t6-1">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t6-1">
+        <div class="set-row" id="s-t6-1-1"><div class="set-check" onclick="toggleSet('s-t6-1-1','t6-1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">120 feet. 75–85% effort. Full arm arc — this distance demands it. Let hip drive carry the ball, don't add arm effort to compensate for distance.</div></div><div class="set-badge stag-throw">🔴 120' · 25 throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t6-1-d" placeholder="Shoulder feel at 120'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t6-1-n" placeholder="Next-day soreness. Location and level. Better/worse than prior level?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-t6-2">
+    <div class="session-head" onclick="toggleSession('t6-2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">Session 2 — 120' · 3 sets × 25 throws · 3 min rest · + game-context throws</div>
+        <div class="session-subtitle">Sat 4/11 · 2 days off after · then next level</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-throw">🟦 120'</span><span class="stag stag-throw">3×25</span><span class='stag stag-viz'>Game Throws</span></div>
+      <div class="session-status" id="status-t6-2">Not started</div>
+    </div>
+    <div class="session-body" id="body-t6-2">
+      <div class="sets-label">Throws — tap to mark complete</div>
+      <div class="sets-grid" id="sets-t6-2">
+        <div class="set-row" id="s-t6-2-1"><div class="set-check" onclick="toggleSet('s-t6-2-1','t6-2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">120 feet. Arm should be more settled than Session 1. Same mechanics cues throughout.</div></div><div class="set-badge stag-throw">🔴 120' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t6-2-2"><div class="set-check" onclick="toggleSet('s-t6-2-2','t6-2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain effort and mechanics. Any symptom increase set-to-set → stop per in-session criteria.</div></div><div class="set-badge stag-throw">🔴 120' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment before game-context block</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t6-2-3"><div class="set-check" onclick="toggleSet('s-t6-2-3','t6-2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final volume set. Complete this clean before moving into game-context throws.</div></div><div class="set-badge stag-throw">🔴 120' · 25 throws</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>5 min rest — full shoulder check before game throws</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-t6-2-4"><div class="set-check" onclick="toggleSet('s-t6-2-4','t6-2')"></div><div class="set-desc">Game-Context Throws — PT Directed<div class="set-detail">Position-specific throws at game effort: feeds, relays, fielding throws. Volume and distance PT-directed based on same-day response. Same in-session criteria apply.</div></div><div class="set-badge stag-throw">⚾ Game Throws</div></div>
+      </div>
+      <div class="criteria-block criteria-postsession">
+        <span class="cb-title">🌙 Post-Session Hold Criteria — Do Not Advance If:</span>
+        <ul>
+          <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+          <li>Soreness that surpasses <strong>6/10</strong> at any point post-session → hold</li>
+          <li>Soreness that interferes with strength/rehab work → hold</li>
+          <li>Any sharp or new symptom pattern → contact PT before next session</li>
+        </ul>
+      </div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session Symptoms</label><textarea id="ta-t6-2-d" placeholder="3-set session at 120'. Soreness trend set-to-set? Any accumulation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day Symptoms</label><textarea id="ta-t6-2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+      <div class='pt-review'><div class='pt-review-label'>📝 PT Clinical Review — Program Completion</div><textarea id='ta-t6-2-pt' placeholder='Final clearance assessment: 120ft volume tolerated, game-context throws response, symptom-free at full effort, mechanics quality, MD clearance status...'></textarea></div>
+    </div>
+  </div>
+
+  <div class="next-box" style="margin-top:16px;">
+    <div class="label">Program Complete — 6 Levels · 12 Sessions</div>
+    <h3>Criteria for Return to Full Throwing Activity</h3>
+    <p>✅&nbsp; Both sessions completed with no symptom escalation · ✅&nbsp; Game-context throws tolerated without mechanics breakdown · ✅&nbsp; Soreness ≤ 4/10, resolved same day · ✅&nbsp; No next-day soreness &gt;24 hr · ✅&nbsp; PT and MD clearance · <span class="highlight">→ Return to full throwing activity: bullpen sessions, infield practice, live game throwing</span></p>
+  </div>
+</div>
+
+</div><!-- end program-throwing -->
+
 </div><!-- page-wrap -->
 
 <script>
 // ─────────────────────────────────────────────
 // STORAGE
 // ─────────────────────────────────────────────
-var STORAGE_KEY = 'hitting_v3';
+var STORAGE_KEY = 'baseball_rehab_v1';
 var toastTimer;
 
 function saveState() {
@@ -818,6 +1615,14 @@ function saveState() {
   // active tab
   var active = document.querySelector('.week-panel.active');
   if (active) state.tab = active.id.replace('panel-', '');
+
+  // active program
+  var progBtn = document.querySelector('.prog-btn.prog-active');
+  state.prog = (progBtn && progBtn.textContent.indexOf('Throwing') >= 0) ? 'throwing' : 'hitting';
+
+  // active throw level tab
+  var throwActive = document.querySelector('.throw-tab-btn[class*="-active"]');
+  state.throwTab = throwActive ? parseInt(throwActive.getAttribute('data-level')) : 1;
 
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
   flashToast();
@@ -861,11 +1666,14 @@ function loadState() {
 
   // restore active tab
   if (state.tab) switchTab(parseInt(state.tab), true);
+  if (state.prog) switchProgram(state.prog);
+  if (state.throwTab) switchThrowTab(parseInt(state.throwTab), true);
 
   // rebuild all derived UI from restored data
-  var allKeys = ['1-1','1-2','1-3','1-4','1-5','2-1','2-2','2-3','2-4','2-5','3-1','3-2','3-3','3-4','3-5','4-1','4-2','4-3','4-4','4-5'];
+  var allKeys = ['1-1','1-2','1-3','1-4','1-5','2-1','2-2','2-3','2-4','2-5','3-1','3-2','3-3','3-4','3-5','4-1','4-2','4-3','4-4','4-5','t1-1','t1-2','t2-1','t2-2','t3-1','t3-2','t4-1','t4-2','t5-1','t5-2','t6-1','t6-2'];
   allKeys.forEach(updateSessionStatus);
   updateAllProgress();
+  updateThrowProgress();
 }
 
 function flashToast() {
@@ -918,6 +1726,7 @@ function toggleSet(id, sessionKey) {
   chk.textContent = done ? '✓' : '';
   updateSessionStatus(sessionKey);
   updateAllProgress();
+  updateThrowProgress();
   saveState();
 }
 
@@ -977,7 +1786,71 @@ function updateAllProgress() {
 // ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
   loadState();
+  updateThrowProgress();
 });
+
+
+// ─────────────────────────────────────────────
+// PROGRAM TOGGLE (Hitting / Throwing)
+// ─────────────────────────────────────────────
+function switchProgram(prog) {
+  document.querySelectorAll('.program-panel').forEach(function(p) { p.classList.remove('prog-active'); });
+  document.querySelectorAll('.prog-btn').forEach(function(b) { b.classList.remove('prog-active'); });
+  document.getElementById('program-' + prog).classList.add('prog-active');
+  var btns = document.querySelectorAll('.prog-btn');
+  if (prog === 'hitting') btns[0].classList.add('prog-active');
+  else btns[1].classList.add('prog-active');
+  saveState();
+}
+
+// ─────────────────────────────────────────────
+// THROWING TAB SWITCHING
+// ─────────────────────────────────────────────
+var throwLevelColors = {1:'tl1-active',2:'tl2-active',3:'tl3-active',4:'tl4-active',5:'tl5-active',6:'tl6-active'};
+
+function switchThrowTab(lv, silent) {
+  document.querySelectorAll('.throw-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.throw-tab-btn').forEach(function(b) {
+    Object.values(throwLevelColors).forEach(function(c){ b.classList.remove(c); });
+  });
+  var panel = document.getElementById('throw-panel-' + lv);
+  if (panel) panel.classList.add('active');
+  var btn = document.querySelector('[data-level="' + lv + '"]');
+  if (btn) btn.classList.add(throwLevelColors[lv]);
+  if (!silent) saveState();
+}
+
+// ─────────────────────────────────────────────
+// THROWING PROGRESS
+// ─────────────────────────────────────────────
+function throwLevelDone(lv, keys) {
+  var done = 0;
+  keys.forEach(function(key) {
+    var sets = document.querySelectorAll('#sets-' + key + ' .set-row');
+    var mainSets = Array.from(sets).filter(function(s) {
+      return !s.querySelector('.set-badge').textContent.includes('Optional');
+    });
+    var mainDone = mainSets.filter(function(s) { return s.classList.contains('set-done'); });
+    if (mainSets.length > 0 && mainDone.length === mainSets.length) done++;
+  });
+  var total = keys.length;
+  var pct = Math.round(done / total * 100);
+  var bar = document.getElementById('ttab-bar-' + lv);
+  var fill = document.getElementById('ttab-fill-' + lv);
+  var count = document.getElementById('ttab-count-' + lv);
+  if (bar) bar.style.width = pct + '%';
+  if (fill) fill.style.width = pct + '%';
+  if (count) count.textContent = done + '/' + total;
+}
+
+function updateThrowProgress() {
+  throwLevelDone(1, ['t1-1','t1-2']);
+  throwLevelDone(2, ['t2-1','t2-2']);
+  throwLevelDone(3, ['t3-1','t3-2']);
+  throwLevelDone(4, ['t4-1','t4-2']);
+  throwLevelDone(5, ['t5-1','t5-2']);
+  throwLevelDone(6, ['t6-1','t6-2']);
+}
 
 // ─────────────────────────────────────────────
 // SERVICE WORKER (PWA offline support)
