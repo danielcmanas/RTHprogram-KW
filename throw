@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Return to Throw Program</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Throw Program">
+<meta name="theme-color" content="#0f2744">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow:wght@400;500;600;700;800&display=swap');
+:root {
+  --bg: #f2f0eb;
+  --card: #ffffff;
+  --border: #d8d2c8;
+  --navy: #0f2744;
+  --text: #1e1e1e;
+  --muted: #6e6860;
+  --green: #1e6b45;
+  --green-light: #e6f4ee;
+  --accent: #b83220;
+  --accent-light: #fce8e5;
+  --yellow: #a06000;
+  --yellow-light: #fef4d8;
+  --blue: #1155aa;
+  --blue-light: #e4ecf9;
+
+  --l1: #0f4c75;
+  --l2: #1b6ca8;
+  --l3: #1a6b3c;
+  --l4: #2d6a4f;
+  --l5: #6b3d9a;
+  --l6: #8b1a11;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 60px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .06em; padding: 7px 14px; border-radius: 20px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* HEADER */
+.header { background: var(--navy); color: white; border-radius: 12px 12px 0 0; padding: 28px 32px 0; position: relative; overflow: hidden; margin-top: 24px; }
+.header::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: rgba(27,108,168,.18); }
+.header::after { content: ''; position: absolute; bottom: -30px; left: 60px; width: 120px; height: 120px; border-radius: 50%; background: rgba(15,76,117,.15); }
+.header-tag { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #5badea; background: rgba(91,173,234,.12); display: inline-block; padding: 4px 10px; border-radius: 4px; margin-bottom: 10px; }
+.header h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; position: relative; z-index: 1; }
+.header-meta { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; position: relative; z-index: 1; }
+.meta-item { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.11); border-radius: 8px; padding: 7px 12px; font-size: 13px; }
+.meta-item span { font-family: 'DM Mono', monospace; font-size: 10px; color: #8fa8c8; display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .08em; }
+
+/* BACK LINK */
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); text-decoration: none; padding: 10px 0 14px; border-top: 1px solid rgba(255,255,255,.08); margin-top: 16px; display: block; }
+.back-link:hover { color: white; }
+
+/* LEVEL TABS */
+.tabs-outer { background: var(--card); border: 1.5px solid var(--border); border-top: none; padding: 16px 20px; }
+.tabs-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.tabs-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab-btn { position: relative; overflow: hidden; flex: 1; min-width: 100px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: left; transition: border-color .2s, box-shadow .2s; }
+.tab-btn.lv-active { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+.tab-btn[data-lv="1"].lv-active { border-color: var(--l1); }
+.tab-btn[data-lv="2"].lv-active { border-color: var(--l2); }
+.tab-btn[data-lv="3"].lv-active { border-color: var(--l3); }
+.tab-btn[data-lv="4"].lv-active { border-color: var(--l4); }
+.tab-btn[data-lv="5"].lv-active { border-color: var(--l5); }
+.tab-btn[data-lv="6"].lv-active { border-color: var(--l6); }
+.tab-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 6px; transition: width .5s ease; opacity: .1; pointer-events: none; }
+.tab-btn[data-lv="1"] .tab-fill { background: var(--l1); }
+.tab-btn[data-lv="2"] .tab-fill { background: var(--l2); }
+.tab-btn[data-lv="3"] .tab-fill { background: var(--l3); }
+.tab-btn[data-lv="4"] .tab-fill { background: var(--l4); }
+.tab-btn[data-lv="5"] .tab-fill { background: var(--l5); }
+.tab-btn[data-lv="6"] .tab-fill { background: var(--l6); }
+.tab-inner { position: relative; z-index: 1; }
+.tab-lv-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.tab-btn[data-lv="1"].lv-active .tab-lv-label { color: var(--l1); }
+.tab-btn[data-lv="2"].lv-active .tab-lv-label { color: var(--l2); }
+.tab-btn[data-lv="3"].lv-active .tab-lv-label { color: var(--l3); }
+.tab-btn[data-lv="4"].lv-active .tab-lv-label { color: var(--l4); }
+.tab-btn[data-lv="5"].lv-active .tab-lv-label { color: var(--l5); }
+.tab-btn[data-lv="6"].lv-active .tab-lv-label { color: var(--l6); }
+.tab-dist { font-size: 16px; font-weight: 800; color: var(--navy); }
+.tab-dates { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.tab-prog { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.tab-track { flex: 1; height: 4px; background: #e2ddd6; border-radius: 20px; overflow: hidden; }
+.tab-bar-fill { height: 100%; border-radius: 20px; transition: width .5s; }
+.tab-btn[data-lv="1"] .tab-bar-fill { background: var(--l1); }
+.tab-btn[data-lv="2"] .tab-bar-fill { background: var(--l2); }
+.tab-btn[data-lv="3"] .tab-bar-fill { background: var(--l3); }
+.tab-btn[data-lv="4"] .tab-bar-fill { background: var(--l4); }
+.tab-btn[data-lv="5"] .tab-bar-fill { background: var(--l5); }
+.tab-btn[data-lv="6"] .tab-bar-fill { background: var(--l6); }
+.tab-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+/* PANELS */
+.level-panel { display: none; padding-top: 18px; }
+.level-panel.active { display: block; }
+
+/* LEVEL FOCUS */
+.level-focus { border-radius: 8px; padding: 13px 18px; margin-bottom: 14px; font-size: 13px; line-height: 1.65; }
+.lf1 { background: #e6f0fa; border: 1.5px solid #90bce8; color: #0a3a5c; }
+.lf2 { background: #e2eef8; border: 1.5px solid #6aaee0; color: #0e4a7a; }
+.lf3 { background: var(--green-light); border: 1.5px solid #8ecfaa; color: #134d2c; }
+.lf4 { background: #e6f2ec; border: 1.5px solid #7dc4a0; color: #1a4d35; }
+.lf5 { background: #f0eaf8; border: 1.5px solid #c09de0; color: #4a2270; }
+.lf6 { background: var(--accent-light); border: 1.5px solid #e8a09a; color: #6e1208; }
+
+/* CRITERIA BLOCKS */
+.crit { border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; font-size: 13px; line-height: 1.6; }
+.crit-pre { background: #fffbec; border: 1.5px solid #f5d87a; }
+.crit-in  { background: #fef0f0; border: 1.5px solid #f5a8a8; }
+.crit-mech { background: var(--blue-light); border: 1.5px solid #a0bce8; }
+.crit-post { background: #eef0fa; border: 1.5px solid #a8b8e8; }
+.crit-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 7px; }
+.crit-pre .crit-title { color: #9a7000; }
+.crit-in .crit-title  { color: #a02020; }
+.crit-mech .crit-title { color: #1155aa; }
+.crit-post .crit-title { color: #2233aa; }
+.crit ul { padding-left: 16px; margin: 0; }
+.crit li { margin-bottom: 3px; }
+.crit strong { font-weight: 700; }
+
+/* SESSION CARDS */
+.session-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; transition: box-shadow .2s; }
+.session-card.completed { border-color: #8ecfaa; }
+.session-card:hover { box-shadow: 0 3px 14px rgba(0,0,0,.07); }
+.session-head { display: flex; align-items: center; padding: 13px 18px; gap: 12px; cursor: pointer; user-select: none; border-bottom: 1.5px solid var(--border); background: #fafaf8; flex-wrap: wrap; }
+.session-card.completed .session-head { background: var(--green-light); border-bottom-color: #8ecfaa; }
+.session-num { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--navy); min-width: 30px; }
+.session-info { flex: 1; min-width: 140px; }
+.session-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+.session-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.session-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.stag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+.stag-dist { background: var(--blue-light); color: var(--blue); }
+.stag-vol  { background: var(--green-light); color: var(--green); }
+.stag-game { background: var(--yellow-light); color: var(--yellow); }
+.session-status { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); background: var(--bg); padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); white-space: nowrap; }
+.session-card.completed .session-status { background: var(--green-light); color: var(--green); border-color: #8ecfaa; }
+.session-body { padding: 16px 18px 18px; display: none; }
+.session-body.open { display: block; }
+
+/* SETS */
+.sets-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+.sets-grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.set-row { display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 7px; padding: 9px 12px; border: 1.5px solid transparent; transition: border-color .15s, background .15s; }
+.set-row.set-done { background: var(--green-light); border-color: #8ecfaa; }
+.set-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); background: white; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all .15s; }
+.set-row.set-done .set-check { background: var(--green); border-color: var(--green); color: white; }
+.set-desc { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
+.set-detail { font-size: 12px; color: var(--muted); margin-top: 2px; font-weight: 400; line-height: 1.5; }
+.set-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); background: white; border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; white-space: nowrap; }
+.rest-row { display: flex; align-items: center; gap: 10px; padding: 3px 12px; font-size: 12px; color: var(--muted); }
+.rest-line { flex: 1; height: 1px; background: var(--border); }
+
+/* NOTES */
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+@media(max-width:560px) { .notes-grid { grid-template-columns: 1fr; } }
+.notes-box label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; }
+.notes-box textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 7px; background: var(--bg); padding: 9px 11px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text); resize: vertical; min-height: 68px; line-height: 1.5; transition: border-color .15s; }
+.notes-box textarea:focus { outline: none; border-color: var(--navy); background: white; }
+.notes-box textarea::placeholder { color: #b0a898; }
+
+/* PT REVIEW */
+.pt-review { background: #f0f4ff; border: 1.5px solid #c0d0f0; border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
+.pt-review-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #3050c0; margin-bottom: 7px; }
+.pt-review textarea { width: 100%; border: 1.5px solid #c0d0f0; border-radius: 7px; background: white; padding: 9px 11px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text); resize: vertical; min-height: 76px; line-height: 1.5; }
+
+/* ADVANCE BOX */
+.adv-box { background: var(--navy); color: white; border-radius: 10px; padding: 18px 22px; margin-top: 6px; }
+.adv-box .adv-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #7090b8; margin-bottom: 7px; }
+.adv-box h3 { font-size: 14px; font-weight: 700; margin-bottom: 7px; }
+.adv-box p { font-size: 13px; color: #c0d0e4; line-height: 1.8; }
+.adv-box .hl { color: #f8c96b; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">✓ Saved</div>
+
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-tag">⚾ Return to Sport — Post-SLAP Repair</div>
+  <h1>Return to Throw Program</h1>
+  <div class="header-meta">
+    <div class="meta-item"><span>Levels</span>6 distance levels</div>
+    <div class="meta-item"><span>Sessions</span>12 total</div>
+    <div class="meta-item"><span>Ceiling</span>120 feet</div>
+    <div class="meta-item"><span>Started</span>Mar 13, 2026</div>
+  </div>
+  <a class="back-link" href="index.html">← Back to Hitting Program</a>
+</div>
+
+<!-- TABS -->
+<div class="tabs-outer">
+  <div class="tabs-label">Distance Level</div>
+  <div class="tabs-bar">
+
+    <button class="tab-btn lv-active" data-lv="1" onclick="switchLevel(1)">
+      <div class="tab-fill" id="tf-1" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 1</div>
+        <div class="tab-dist">45'</div>
+        <div class="tab-dates">Mon 3/16<br>Wed 3/18</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-1" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-1">0/2</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="tab-btn" data-lv="2" onclick="switchLevel(2)">
+      <div class="tab-fill" id="tf-2" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 2</div>
+        <div class="tab-dist">60'</div>
+        <div class="tab-dates">Sat 3/21<br>Mon 3/23</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-2" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-2">0/2</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="tab-btn" data-lv="3" onclick="switchLevel(3)">
+      <div class="tab-fill" id="tf-3" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 3</div>
+        <div class="tab-dist">75'</div>
+        <div class="tab-dates">Thu 3/26<br>Sat 3/28</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-3" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-3">0/2</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="tab-btn" data-lv="4" onclick="switchLevel(4)">
+      <div class="tab-fill" id="tf-4" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 4</div>
+        <div class="tab-dist">90'</div>
+        <div class="tab-dates">Mon 3/30<br>Wed 4/1</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-4" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-4">0/2</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="tab-btn" data-lv="5" onclick="switchLevel(5)">
+      <div class="tab-fill" id="tf-5" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 5</div>
+        <div class="tab-dist">105'</div>
+        <div class="tab-dates">Sat 4/4<br>Mon 4/6</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-5" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-5">0/2</div>
+        </div>
+      </div>
+    </button>
+
+    <button class="tab-btn" data-lv="6" onclick="switchLevel(6)">
+      <div class="tab-fill" id="tf-6" style="width:0%"></div>
+      <div class="tab-inner">
+        <div class="tab-lv-label">Level 6</div>
+        <div class="tab-dist">120'</div>
+        <div class="tab-dates">Thu 4/9<br>Sat 4/11</div>
+        <div class="tab-prog">
+          <div class="tab-track"><div class="tab-bar-fill" id="tb-6" style="width:0%"></div></div>
+          <div class="tab-count" id="tc-6">0/2</div>
+        </div>
+      </div>
+    </button>
+
+  </div>
+</div>
+
+<!-- ═══════ SHARED CRITERIA (injected per panel via JS) ═══════ -->
+<template id="tpl-criteria">
+  <div class="crit crit-pre">
+    <span class="crit-title">⚠️ Pre-Session Check</span>
+    <ul>
+      <li>Warm up first: arm circles, band ER, shoulder CARs — 5 min</li>
+      <li>If lingering soreness from prior session <strong>does not improve</strong> during warm-up tosses → <strong>hold today, try tomorrow</strong></li>
+    </ul>
+  </div>
+  <div class="crit crit-in">
+    <span class="crit-title">🛑 In-Session Modification Criteria</span>
+    <ul>
+      <li><strong>Soreness builds to &gt;4/10:</strong> Stop — 5 min full rest — reassess. If it doesn't settle → session over for the day</li>
+      <li><strong>Sharp pain at any point:</strong> Stop immediately. Do not restart. Contact PT before next session</li>
+      <li><strong>Mechanics breakdown (stop or reduce intensity if):</strong> arm path rises above shoulder on release, short-arming under fatigue, trunk dragging arm instead of hip/trunk leading, throwing shoulder hikes or fails to decelerate smoothly</li>
+    </ul>
+  </div>
+  <div class="crit crit-mech">
+    <span class="crit-title">🎯 Optimal Mechanics Targets</span>
+    <ul>
+      <li>Hip and trunk rotation initiates — arm follows. If the arm is leading, reset</li>
+      <li>Arm path at or below shoulder height through release — no high-and-late pattern</li>
+      <li>Full arm arc on every throw — no short-arming as distance or fatigue increases</li>
+      <li>Smooth follow-through with controlled deceleration — no abrupt stop or shoulder hike</li>
+    </ul>
+  </div>
+</template>
+
+<template id="tpl-post">
+  <div class="crit crit-post">
+    <span class="crit-title">🌙 Post-Session Hold Criteria</span>
+    <ul>
+      <li>Next-day soreness lasting <strong>&gt;24 hours</strong> → repeat this level before progressing</li>
+      <li>Soreness surpassing <strong>6/10</strong> at any point post-session → hold</li>
+      <li>Soreness that interferes with strength/rehab work → hold</li>
+      <li>Any sharp or new symptom pattern → contact PT before next session</li>
+    </ul>
+  </div>
+</template>
+
+<!-- ═══════════════ LEVEL 1 — 45' ═══════════════ -->
+<div class="level-panel active" id="panel-1">
+  <div class="level-focus lf1">
+    <strong>Level 1 — 45 feet &nbsp;·&nbsp; Mon 3/16 &amp; Wed 3/18</strong><br>
+    First full-distance session. Bridge work (20' and 30') is complete. Keep effort easy and controlled — 60–70%. The goal is mechanics quality and tissue tolerance, not arm strength. <em>Bridge note: Fri 3/14 — 30' × 2×20 throws complete.</em>
+  </div>
+
+  <!-- S1 -->
+  <div class="session-card" id="card-L1S1">
+    <div class="session-head" onclick="toggleSession('L1S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">45' — 1 × 25 throws</div>
+        <div class="session-sub">Mon 3/16 &nbsp;·&nbsp; Rest + strength day follows</div>
+      </div>
+      <div class="session-tags">
+        <span class="stag stag-dist">45 feet</span>
+        <span class="stag stag-vol">1 × 25</span>
+      </div>
+      <div class="session-status" id="status-L1S1">Not started</div>
+    </div>
+    <div class="session-body open" id="body-L1S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L1S1">
+        <div class="set-row" id="s-L1S1-1">
+          <div class="set-check" onclick="toggleSet('s-L1S1-1','L1S1')"></div>
+          <div class="set-desc">Set 1 — 25 Throws
+            <div class="set-detail">45 feet. 60–70% effort. Smooth, fluid release. Full arm arc. Hip leads the throw every rep.</div>
+          </div>
+          <div class="set-badge">45' · 25</div>
+        </div>
+      </div>
+      <div id="post-L1S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L1S1-d" placeholder="Shoulder feel at 45'. Posterior soreness? Any sharp sensation? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L1S1-n" placeholder="Next-day soreness. Location, level. Better or worse than bridge sessions?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="session-card" id="card-L1S2">
+    <div class="session-head" onclick="toggleSession('L1S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">45' — 3 × 25 throws</div>
+        <div class="session-sub">Wed 3/18 &nbsp;·&nbsp; 3 min rest between sets &nbsp;·&nbsp; 2 days off then Level 2</div>
+      </div>
+      <div class="session-tags">
+        <span class="stag stag-dist">45 feet</span>
+        <span class="stag stag-vol">3 × 25</span>
+      </div>
+      <div class="session-status" id="status-L1S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L1S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L1S2">
+        <div class="set-row" id="s-L1S2-1"><div class="set-check" onclick="toggleSet('s-L1S2-1','L1S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">45 feet. 65–75% effort. Establish rhythm before sets 2 and 3.</div></div><div class="set-badge">45' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, arm circles</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L1S2-2"><div class="set-check" onclick="toggleSet('s-L1S2-2','L1S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Same distance and effort. Don't chase the ball — stay controlled.</div></div><div class="set-badge">45' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L1S2-3"><div class="set-check" onclick="toggleSet('s-L1S2-3','L1S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set. Mechanics should still feel clean. Any fatigue compensations → cut short and note it.</div></div><div class="set-badge">45' · 25</div></div>
+      </div>
+      <div id="post-L1S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L1S2-d" placeholder="Soreness trend across 3 sets? Accumulating or stable? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L1S2-n" placeholder="Next-day soreness after full volume session. Interferes with strength work?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Upon Completing Level 1</div>
+    <h3>Criteria to Advance to Level 2</h3>
+    <p>✅&nbsp; Both sessions completed &nbsp;·&nbsp; ✅&nbsp; Soreness ≤4/10 throughout, resolved same day &nbsp;·&nbsp; ✅&nbsp; No next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; Mechanics clean across all sets<br><br><span class="hl">→ Level 2: 60 feet &nbsp;·&nbsp; Sat 3/21</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ LEVEL 2 — 60' ═══════════════ -->
+<div class="level-panel" id="panel-2">
+  <div class="level-focus lf2">
+    <strong>Level 2 — 60 feet &nbsp;·&nbsp; Sat 3/21 &amp; Mon 3/23</strong><br>
+    First distance jump. 15 feet more — the arm has to work slightly harder. Effort stays controlled. Sat/Mon means only one rest day between S1 and S2 — if Saturday leaves any arm fatigue, slide Monday's session to Tuesday without hesitation.
+  </div>
+
+  <div class="session-card" id="card-L2S1">
+    <div class="session-head" onclick="toggleSession('L2S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">60' — 1 × 25 throws</div>
+        <div class="session-sub">Sat 3/21 &nbsp;·&nbsp; Rest + strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">60 feet</span><span class="stag stag-vol">1 × 25</span></div>
+      <div class="session-status" id="status-L2S1">Not started</div>
+    </div>
+    <div class="session-body" id="body-L2S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L2S1">
+        <div class="set-row" id="s-L2S1-1"><div class="set-check" onclick="toggleSet('s-L2S1-1','L2S1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">60 feet. 65–75% effort. Let the distance happen through hip drive — don't muscle it with the arm.</div></div><div class="set-badge">60' · 25</div></div>
+      </div>
+      <div id="post-L2S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L2S1-d" placeholder="Shoulder feel vs. 45'. Posterior engagement more notable? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L2S1-n" placeholder="Next-day soreness. Location and level."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-card" id="card-L2S2">
+    <div class="session-head" onclick="toggleSession('L2S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">60' — 3 × 25 throws</div>
+        <div class="session-sub">Mon 3/23 &nbsp;·&nbsp; 3 min rest between sets &nbsp;·&nbsp; 2 days off then Level 3</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">60 feet</span><span class="stag stag-vol">3 × 25</span></div>
+      <div class="session-status" id="status-L2S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L2S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L2S2">
+        <div class="set-row" id="s-L2S2-1"><div class="set-check" onclick="toggleSet('s-L2S2-1','L2S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">60 feet. Re-establish the feel from Session 1.</div></div><div class="set-badge">60' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L2S2-2"><div class="set-check" onclick="toggleSet('s-L2S2-2','L2S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain same effort and mechanics. Note any change in shoulder feel vs. set 1.</div></div><div class="set-badge">60' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L2S2-3"><div class="set-check" onclick="toggleSet('s-L2S2-3','L2S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final set. Complete this clean and Level 2 is done.</div></div><div class="set-badge">60' · 25</div></div>
+      </div>
+      <div id="post-L2S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L2S2-d" placeholder="Soreness trend set-to-set. Stable or accumulating? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L2S2-n" placeholder="Next-day soreness. Improving trend vs. Level 1?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Upon Completing Level 2</div>
+    <h3>Criteria to Advance to Level 3</h3>
+    <p>✅&nbsp; Both sessions completed &nbsp;·&nbsp; ✅&nbsp; Soreness ≤4/10, resolved same day &nbsp;·&nbsp; ✅&nbsp; No next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; Arm carries 60 feet without effort compensation<br><br><span class="hl">→ Level 3: 75 feet &nbsp;·&nbsp; Thu 3/26</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ LEVEL 3 — 75' ═══════════════ -->
+<div class="level-panel" id="panel-3">
+  <div class="level-focus lf3">
+    <strong>Level 3 — 75 feet &nbsp;·&nbsp; Thu 3/26 &amp; Sat 3/28</strong><br>
+    Mechanical inflection point. Throws above 75 feet load the posterior capsule and external rotators differently — this is where SLAP repairs get tested. S2 needs to feel <em>genuinely easy</em>, not just tolerated, before stepping to 90'. Do not advance if this level is merely surviving.
+  </div>
+
+  <div class="session-card" id="card-L3S1">
+    <div class="session-head" onclick="toggleSession('L3S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">75' — 1 × 25 throws</div>
+        <div class="session-sub">Thu 3/26 &nbsp;·&nbsp; Rest + strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">75 feet</span><span class="stag stag-vol">1 × 25</span></div>
+      <div class="session-status" id="status-L3S1">Not started</div>
+    </div>
+    <div class="session-body" id="body-L3S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L3S1">
+        <div class="set-row" id="s-L3S1-1"><div class="set-check" onclick="toggleSet('s-L3S1-1','L3S1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">75 feet. 70–80% effort. More posterior shoulder engagement is normal at this distance. Soreness &gt;4/10 → stop, 5 min rest, reassess.</div></div><div class="set-badge">75' · 25</div></div>
+      </div>
+      <div id="post-L3S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L3S1-d" placeholder="Posterior capsule feel vs. 60'. Any notable difference in loading? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L3S1-n" placeholder="Next-day soreness. Location and level. Posterior shoulder specifically."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-card" id="card-L3S2">
+    <div class="session-head" onclick="toggleSession('L3S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">75' — 3 × 25 throws</div>
+        <div class="session-sub">Sat 3/28 &nbsp;·&nbsp; 3 min rest between sets &nbsp;·&nbsp; Must feel controlled, not just tolerated</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">75 feet</span><span class="stag stag-vol">3 × 25</span></div>
+      <div class="session-status" id="status-L3S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L3S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L3S2">
+        <div class="set-row" id="s-L3S2-1"><div class="set-check" onclick="toggleSet('s-L3S2-1','L3S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">75 feet. Arm should feel more settled than S1. Hip drive doing the work, arm staying loose.</div></div><div class="set-badge">75' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, note any posterior capsule tightness</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L3S2-2"><div class="set-check" onclick="toggleSet('s-L3S2-2','L3S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Any compensation pattern — arm rising, short-arming — cut here and note it. Don't push through mechanics breakdown.</div></div><div class="set-badge">75' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment before final set</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L3S2-3"><div class="set-check" onclick="toggleSet('s-L3S2-3','L3S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">This set needs to feel controlled, not just survived. If it feels like max effort → repeat Level 3 before advancing to 90'.</div></div><div class="set-badge">75' · 25</div></div>
+      </div>
+      <div id="post-L3S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L3S2-d" placeholder="Posterior soreness set-to-set trend. Worsening or stable? How did set 3 feel? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L3S2-n" placeholder="Next-day soreness. This level must be controlled before stepping to 90'."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Upon Completing Level 3</div>
+    <h3>Criteria to Advance to Level 4</h3>
+    <p>✅&nbsp; S2 (3×25) completed and felt <em>controlled</em>, not just tolerated &nbsp;·&nbsp; ✅&nbsp; No posterior capsule symptoms worsening set-to-set &nbsp;·&nbsp; ✅&nbsp; No next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; PT satisfied with deceleration mechanics<br><br><span class="hl">→ Level 4: 90 feet &nbsp;·&nbsp; Mon 3/30 — key milestone</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ LEVEL 4 — 90' ═══════════════ -->
+<div class="level-panel" id="panel-4">
+  <div class="level-focus lf4">
+    <strong>Level 4 — 90 feet &nbsp;·&nbsp; Mon 3/30 &amp; Wed 4/1</strong><br>
+    Target milestone. Game-relevant distance for infield position players. The arm is working near full functional range. Effort can approach 80–85% on S2 if mechanics and symptoms allow. The distance is the load — don't chase intensity.
+  </div>
+
+  <div class="session-card" id="card-L4S1">
+    <div class="session-head" onclick="toggleSession('L4S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">90' — 1 × 25 throws</div>
+        <div class="session-sub">Mon 3/30 &nbsp;·&nbsp; Rest + strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">90 feet</span><span class="stag stag-vol">1 × 25</span></div>
+      <div class="session-status" id="status-L4S1">Not started</div>
+    </div>
+    <div class="session-body" id="body-L4S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L4S1">
+        <div class="set-row" id="s-L4S1-1"><div class="set-check" onclick="toggleSet('s-L4S1-1','L4S1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">90 feet. 70–80% effort. First throws at game-relevant distance. Note how the shoulder loads and decelerates — key data point for today.</div></div><div class="set-badge">90' · 25</div></div>
+      </div>
+      <div id="post-L4S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L4S1-d" placeholder="Loading and deceleration feel at 90'. Shoulder response vs. 75'. Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L4S1-n" placeholder="Next-day soreness. Location and level."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-card" id="card-L4S2">
+    <div class="session-head" onclick="toggleSession('L4S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">90' — 3 × 25 throws</div>
+        <div class="session-sub">Wed 4/1 &nbsp;·&nbsp; 3 min rest between sets &nbsp;·&nbsp; Program milestone</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">90 feet</span><span class="stag stag-vol">3 × 25</span></div>
+      <div class="session-status" id="status-L4S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L4S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L4S2">
+        <div class="set-row" id="s-L4S2-1"><div class="set-check" onclick="toggleSet('s-L4S2-1','L4S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">90 feet. 75–85% effort. Arm should be more settled than S1. Hip rotation leading every rep.</div></div><div class="set-badge">90' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check, assess posterior soreness</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L4S2-2"><div class="set-check" onclick="toggleSet('s-L4S2-2','L4S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain mechanics and effort. Any posterior capsule soreness building → in-session mod criteria apply.</div></div><div class="set-badge">90' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L4S2-3"><div class="set-check" onclick="toggleSet('s-L4S2-3','L4S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Complete this clean and you've hit the program milestone. Deceleration quality — don't let the arm drift to chase distance.</div></div><div class="set-badge">90' · 25</div></div>
+      </div>
+      <div id="post-L4S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L4S2-d" placeholder="90-foot full volume session — how does it feel vs. earlier levels? Posterior shoulder specifically. Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L4S2-n" placeholder="Next-day soreness. Milestone achieved — how is the shoulder recovering?"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Upon Completing Level 4</div>
+    <h3>Criteria to Advance to Level 5</h3>
+    <p>✅&nbsp; 90 feet completed across both sessions &nbsp;·&nbsp; ✅&nbsp; No posterior capsule symptoms worsening set-to-set &nbsp;·&nbsp; ✅&nbsp; No next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; PT satisfied with deceleration mechanics at full distance<br><br><span class="hl">→ Level 5: 105 feet &nbsp;·&nbsp; Sat 4/4</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ LEVEL 5 — 105' ═══════════════ -->
+<div class="level-panel" id="panel-5">
+  <div class="level-focus lf5">
+    <strong>Level 5 — 105 feet &nbsp;·&nbsp; Sat 4/4 &amp; Mon 4/6</strong><br>
+    Beyond game-relevant infield distance. Builds arm capacity and confidence above the threshold. Sat/Mon is the tightest pairing in the program — only one rest day between S1 and S2. If Saturday leaves any arm fatigue, slide Monday to Tuesday. Do not force the turnaround.
+  </div>
+
+  <div class="session-card" id="card-L5S1">
+    <div class="session-head" onclick="toggleSession('L5S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">105' — 1 × 25 throws</div>
+        <div class="session-sub">Sat 4/4 &nbsp;·&nbsp; Rest + strength day follows (may need to slide to Tue)</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">105 feet</span><span class="stag stag-vol">1 × 25</span></div>
+      <div class="session-status" id="status-L5S1">Not started</div>
+    </div>
+    <div class="session-body" id="body-L5S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L5S1">
+        <div class="set-row" id="s-L5S1-1"><div class="set-check" onclick="toggleSet('s-L5S1-1','L5S1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">105 feet. 75–80% effort. Arm going longer than game-distance — stay within mechanics, don't arc the ball to reach.</div></div><div class="set-badge">105' · 25</div></div>
+      </div>
+      <div id="post-L5S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L5S1-d" placeholder="Shoulder feel at 105'. Any new sensations vs. 90'? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L5S1-n" placeholder="Next-day soreness. Important for deciding Mon vs. Tue for S2."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-card" id="card-L5S2">
+    <div class="session-head" onclick="toggleSession('L5S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">105' — 3 × 25 throws</div>
+        <div class="session-sub">Mon 4/6 (or Tue if needed) &nbsp;·&nbsp; 3 min rest between sets</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">105 feet</span><span class="stag stag-vol">3 × 25</span></div>
+      <div class="session-status" id="status-L5S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L5S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L5S2">
+        <div class="set-row" id="s-L5S2-1"><div class="set-check" onclick="toggleSet('s-L5S2-1','L5S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">105 feet. If arm still feels yesterday's work, soreness should be ≤2/10 and declining before you start. Otherwise hold.</div></div><div class="set-badge">105' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L5S2-2"><div class="set-check" onclick="toggleSet('s-L5S2-2','L5S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain clean mechanics. Short-arming often appears first at this distance under fatigue — watch for it.</div></div><div class="set-badge">105' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L5S2-3"><div class="set-check" onclick="toggleSet('s-L5S2-3','L5S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Arm should feel like it has capacity to spare. If this feels like max effort, note it before advancing to 120'.</div></div><div class="set-badge">105' · 25</div></div>
+      </div>
+      <div id="post-L5S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L5S2-d" placeholder="3-set session at 105'. Soreness trend. Does set 3 have capacity remaining? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L5S2-n" placeholder="Next-day soreness. S2 at 105' must leave margin before stepping to 120'."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Upon Completing Level 5</div>
+    <h3>Criteria to Advance to Level 6</h3>
+    <p>✅&nbsp; Both sessions completed &nbsp;·&nbsp; ✅&nbsp; Soreness ≤4/10, resolved same day &nbsp;·&nbsp; ✅&nbsp; No next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; S2 felt like it had capacity remaining — not max effort<br><br><span class="hl">→ Level 6: 120 feet &nbsp;·&nbsp; Thu 4/9 — program ceiling</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════ LEVEL 6 — 120' ═══════════════ -->
+<div class="level-panel" id="panel-6">
+  <div class="level-focus lf6">
+    <strong>Level 6 — 120 feet &nbsp;·&nbsp; Thu 4/9 &amp; Sat 4/11</strong><br>
+    Program ceiling. S2 adds game-context throws after the volume block — feeds, relays, fielding throws at game effort. PT-directed volume. Completing this level clean with no symptoms is the final gate before full clearance.
+  </div>
+
+  <div class="session-card" id="card-L6S1">
+    <div class="session-head" onclick="toggleSession('L6S1')">
+      <div class="session-num">S1</div>
+      <div class="session-info">
+        <div class="session-title">120' — 1 × 25 throws</div>
+        <div class="session-sub">Thu 4/9 &nbsp;·&nbsp; Rest + strength day follows</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">120 feet</span><span class="stag stag-vol">1 × 25</span></div>
+      <div class="session-status" id="status-L6S1">Not started</div>
+    </div>
+    <div class="session-body" id="body-L6S1">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L6S1">
+        <div class="set-row" id="s-L6S1-1"><div class="set-check" onclick="toggleSet('s-L6S1-1','L6S1')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">120 feet. 75–85% effort. Full arm arc — this distance demands it. Let hip drive carry the ball, don't add arm effort to compensate for distance.</div></div><div class="set-badge">120' · 25</div></div>
+      </div>
+      <div id="post-L6S1"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L6S1-d" placeholder="Shoulder feel at program ceiling. Any new sensations? Deceleration quality? Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L6S1-n" placeholder="Next-day soreness. Location and level. Posterior shoulder specifically."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-card" id="card-L6S2">
+    <div class="session-head" onclick="toggleSession('L6S2')">
+      <div class="session-num">S2</div>
+      <div class="session-info">
+        <div class="session-title">120' — 3 × 25 throws + game context</div>
+        <div class="session-sub">Sat 4/11 &nbsp;·&nbsp; 3 min rest between sets &nbsp;·&nbsp; Final session</div>
+      </div>
+      <div class="session-tags"><span class="stag stag-dist">120 feet</span><span class="stag stag-vol">3 × 25</span><span class="stag stag-game">Game Throws</span></div>
+      <div class="session-status" id="status-L6S2">Not started</div>
+    </div>
+    <div class="session-body" id="body-L6S2">
+      <div class="sets-label">Sets — tap to mark complete</div>
+      <div class="sets-grid" id="sets-L6S2">
+        <div class="set-row" id="s-L6S2-1"><div class="set-check" onclick="toggleSet('s-L6S2-1','L6S2')"></div><div class="set-desc">Set 1 — 25 Throws<div class="set-detail">120 feet. Arm should be more settled than S1. Same mechanics cues throughout.</div></div><div class="set-badge">120' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — shoulder check</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L6S2-2"><div class="set-check" onclick="toggleSet('s-L6S2-2','L6S2')"></div><div class="set-desc">Set 2 — 25 Throws<div class="set-detail">Maintain effort and mechanics. Any symptom increase set-to-set → stop per in-session criteria.</div></div><div class="set-badge">120' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>3 min rest — full shoulder assessment before game throws</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L6S2-3"><div class="set-check" onclick="toggleSet('s-L6S2-3','L6S2')"></div><div class="set-desc">Set 3 — 25 Throws<div class="set-detail">Final volume set. Complete clean before moving into game-context block.</div></div><div class="set-badge">120' · 25</div></div>
+        <div class="rest-row"><div class="rest-line"></div><span>5 min rest — full shoulder check before game throws</span><div class="rest-line"></div></div>
+        <div class="set-row" id="s-L6S2-4"><div class="set-check" onclick="toggleSet('s-L6S2-4','L6S2')"></div><div class="set-desc">Game-Context Throws — PT Directed<div class="set-detail">Position-specific throws at game effort: feeds, relays, fielding throws. Volume and distance PT-directed based on same-day response. Same in-session criteria apply.</div></div><div class="set-badge">⚾ Game</div></div>
+      </div>
+      <div id="post-L6S2"></div>
+      <div class="notes-grid">
+        <div class="notes-box"><label>🩺 During-Session</label><textarea id="ta-L6S2-d" placeholder="120-foot full volume + game throws — final shoulder assessment. Rate 0–10."></textarea></div>
+        <div class="notes-box"><label>🌙 Next-Day</label><textarea id="ta-L6S2-n" placeholder="Final recovery check. Any symptoms needing monitoring before clearance?"></textarea></div>
+      </div>
+      <div class="pt-review">
+        <div class="pt-review-label">📝 PT Clinical Review — Program Completion</div>
+        <textarea id="ta-L6S2-pt" placeholder="Final clearance assessment: 120ft volume tolerated, game-context throw response, symptom-free at full effort, mechanics quality throughout program, MD clearance status…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-box">
+    <div class="adv-label">Program Complete — 6 Levels · 12 Sessions</div>
+    <h3>Criteria for Return to Full Throwing Activity</h3>
+    <p>✅&nbsp; All 12 sessions completed &nbsp;·&nbsp; ✅&nbsp; Game-context throws tolerated without mechanics breakdown &nbsp;·&nbsp; ✅&nbsp; Soreness ≤4/10 throughout, no next-day soreness &gt;24 hr &nbsp;·&nbsp; ✅&nbsp; PT and MD clearance<br><br><span class="hl">→ Return to full throwing: bullpen sessions, infield practice, live game throwing</span></p>
+  </div>
+</div>
+
+</div><!-- wrap -->
+
+<script>
+var STORAGE_KEY = 'throwing_v1';
+var toastTimer;
+
+// ── INIT CRITERIA BLOCKS ──────────────────────
+// Inject shared pre/in/mech criteria into each session-body, and post criteria into each post-div
+window.addEventListener('DOMContentLoaded', function() {
+  var critTpl = document.getElementById('tpl-criteria').innerHTML;
+  var postTpl = document.getElementById('tpl-post').innerHTML;
+
+  // Inject criteria at top of each level panel (after level-focus)
+  document.querySelectorAll('.level-panel').forEach(function(panel) {
+    var focus = panel.querySelector('.level-focus');
+    var div = document.createElement('div');
+    div.innerHTML = critTpl;
+    focus.parentNode.insertBefore(div, focus.nextSibling);
+  });
+
+  // Inject post-session criteria into each post- div
+  document.querySelectorAll('[id^="post-"]').forEach(function(el) {
+    el.innerHTML = postTpl;
+  });
+
+  loadState();
+});
+
+// ── TAB SWITCHING ─────────────────────────────
+function switchLevel(lv, silent) {
+  document.querySelectorAll('.level-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('lv-active'); });
+  document.getElementById('panel-' + lv).classList.add('active');
+  document.querySelector('[data-lv="' + lv + '"]').classList.add('lv-active');
+  if (!silent) saveState();
+}
+
+// ── SESSION ACCORDION ─────────────────────────
+function toggleSession(key) {
+  var b = document.getElementById('body-' + key);
+  if (b) b.classList.toggle('open');
+  saveState();
+}
+
+// ── CHECKBOX ──────────────────────────────────
+function toggleSet(id, sessionKey) {
+  var row = document.getElementById(id);
+  var chk = row.querySelector('.set-check');
+  var done = row.classList.toggle('set-done');
+  chk.textContent = done ? '✓' : '';
+  updateSessionStatus(sessionKey);
+  updateAllProgress();
+  saveState();
+}
+
+// ── SESSION STATUS ────────────────────────────
+function updateSessionStatus(key) {
+  var sets = document.querySelectorAll('#sets-' + key + ' .set-row');
+  var done = Array.from(sets).filter(function(s) { return s.classList.contains('set-done'); });
+  var statusEl = document.getElementById('status-' + key);
+  var card = document.getElementById('card-' + key);
+  if (!statusEl || !card) return;
+  if (sets.length > 0 && done.length === sets.length) {
+    statusEl.textContent = '✓ Complete';
+    card.classList.add('completed');
+  } else if (done.length > 0) {
+    statusEl.textContent = done.length + '/' + sets.length + ' done';
+    card.classList.remove('completed');
+  } else {
+    statusEl.textContent = 'Not started';
+    card.classList.remove('completed');
+  }
+}
+
+// ── PROGRESS BARS ─────────────────────────────
+function updateLevelProgress(lv, s1key, s2key) {
+  var keys = [s1key, s2key];
+  var done = 0;
+  keys.forEach(function(key) {
+    var sets = document.querySelectorAll('#sets-' + key + ' .set-row');
+    var doneCount = Array.from(sets).filter(function(s) { return s.classList.contains('set-done'); }).length;
+    if (sets.length > 0 && doneCount === sets.length) done++;
+  });
+  var pct = Math.round(done / 2 * 100);
+  document.getElementById('tb-' + lv).style.width = pct + '%';
+  document.getElementById('tf-' + lv).style.width = pct + '%';
+  document.getElementById('tc-' + lv).textContent = done + '/2';
+}
+
+function updateAllProgress() {
+  updateLevelProgress(1, 'L1S1', 'L1S2');
+  updateLevelProgress(2, 'L2S1', 'L2S2');
+  updateLevelProgress(3, 'L3S1', 'L3S2');
+  updateLevelProgress(4, 'L4S1', 'L4S2');
+  updateLevelProgress(5, 'L5S1', 'L5S2');
+  updateLevelProgress(6, 'L6S1', 'L6S2');
+}
+
+// ── STORAGE ───────────────────────────────────
+function saveState() {
+  var state = { checks: {}, notes: {}, open: [], lv: 1 };
+  document.querySelectorAll('.set-row[id]').forEach(function(row) {
+    state.checks[row.id] = row.classList.contains('set-done');
+  });
+  document.querySelectorAll('textarea[id]').forEach(function(ta) {
+    state.notes[ta.id] = ta.value;
+  });
+  document.querySelectorAll('.session-body.open[id]').forEach(function(b) {
+    state.open.push(b.id);
+  });
+  var activePanel = document.querySelector('.level-panel.active');
+  if (activePanel) state.lv = parseInt(activePanel.id.replace('panel-', ''));
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  flashToast();
+}
+
+function loadState() {
+  var raw;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) {}
+  if (!raw) return;
+  var state;
+  try { state = JSON.parse(raw); } catch(e) { return; }
+
+  if (state.checks) {
+    Object.keys(state.checks).forEach(function(id) {
+      if (!state.checks[id]) return;
+      var row = document.getElementById(id);
+      if (!row) return;
+      row.classList.add('set-done');
+      var chk = row.querySelector('.set-check');
+      if (chk) chk.textContent = '✓';
+    });
+  }
+  if (state.notes) {
+    Object.keys(state.notes).forEach(function(id) {
+      var ta = document.getElementById(id);
+      if (ta && state.notes[id]) ta.value = state.notes[id];
+    });
+  }
+  if (state.open && state.open.length) {
+    document.querySelectorAll('.session-body').forEach(function(b) { b.classList.remove('open'); });
+    state.open.forEach(function(bid) {
+      var b = document.getElementById(bid);
+      if (b) b.classList.add('open');
+    });
+  }
+  if (state.lv) switchLevel(state.lv, true);
+
+  var allKeys = ['L1S1','L1S2','L2S1','L2S2','L3S1','L3S2','L4S1','L4S2','L5S1','L5S2','L6S1','L6S2'];
+  allKeys.forEach(updateSessionStatus);
+  updateAllProgress();
+}
+
+function flashToast() {
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 1400);
+}
+
+var debounceTimer;
+document.addEventListener('input', function(e) {
+  if (e.target.tagName === 'TEXTAREA') {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(saveState, 500);
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function() {});
+}
+</script>
+</body>
+</html>
